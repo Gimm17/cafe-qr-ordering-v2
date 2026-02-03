@@ -129,7 +129,7 @@
 
                         @if($order->payment_status !== 'PAID')
                         <!-- Pay Button -->
-                        <a href="{{ route('cafe.payment.redirect', $order) }}" class="flex-1 py-2 text-center bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors">
+                        <a href="{{ route('cafe.pay', $order) }}" class="flex-1 py-2 text-center bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors">
                             Bayar
                         </a>
 
