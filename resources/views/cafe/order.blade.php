@@ -48,6 +48,18 @@
     @endif
 
     <main class="max-w-lg mx-auto px-4 py-20">
+        <!-- Flash Messages -->
+        @if(session('error'))
+        <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
+            {{ session('error') }}
+        </div>
+        @endif
+
+        @if(session('success'))
+        <div class="mb-4 p-4 bg-green-50 border border-green-200 rounded-xl text-green-700 text-sm">
+            {{ session('success') }}
+        </div>
+        @endif
         <!-- Order Code Header -->
         <div class="text-center mb-8">
             <p class="text-gray-500 text-sm mb-1">Nomor Pesanan</p>
