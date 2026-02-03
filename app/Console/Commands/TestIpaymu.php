@@ -8,7 +8,7 @@ use Illuminate\Support\Str;
 
 class TestIpaymu extends Command
 {
-    protected $signature = 'test:ipaymu';
+    protected $signature = 'test:ipaymu {orderCode?}';
     protected $description = 'Test iPaymu connection and create a dummy payment';
 
     public function handle(IpaymuClient $client)
@@ -26,20 +26,51 @@ class TestIpaymu extends Command
             ]
         );
 
-        $refId = 'TEST-' . Str::random(6);
-        $payload = [
-            'product' => ['Test Item'],
-            'qty' => [1],
-            'price' => [1000], // Minimum amount usually
-            'description' => ['Test Connection'],
-            'returnUrl' => 'https://google.com',
-            'cancelUrl' => 'https://google.com',
-            'notifyUrl' => 'https://google.com',
-            'referenceId' => $refId,
-            'buyerName' => 'Test User',
-        ];
-
-        $this->info("Sending payload for ref: $refId");
+        $orderCode = $this->argument('orderCode');
+        
+        if ($orderCode) {
+            $order = \App\Models\Order::where('order_code', $orderCode)->first();
+            if (!$order) {
+                $this->error("Order not found: $orderCode");
+                return;
+            }
+            
+            $items = $order->items()->get();
+            $products = $items->pluck('product_name')->map(fn($v) => (string)$v)->values()->all();
+            $qtys = $items->pluck('qty')->map(fn($v) => (int)$v)->values()->all();
+            $prices = $items->pluck('unit_price')->map(fn($v) => (int)$v)->values()->all();
+            $descriptions = $items->pluck('note')->map(fn($v) => (string)($v ?? ''))->values()->all();
+            
+            $payload = [
+                'product' => $products,
+                'qty' => $qtys,
+                'price' => $prices,
+                'description' => $descriptions,
+                'returnUrl' => $cfg['return_url'].'?order_code='.$order->order_code,
+                'cancelUrl' => $cfg['cancel_url'].'?order_code='.$order->order_code,
+                'notifyUrl' => $cfg['notify_url'],
+                'referenceId' => $order->order_code,
+                'buyerName' => (string)$order->customer_name,
+            ];
+            
+            $this->info("Using REAL order: $orderCode");
+            $this->info("Payload:");
+            dump($payload);
+        } else {
+            $refId = 'TEST-' . \Illuminate\Support\Str::random(6);
+            $payload = [
+                'product' => ['Test Item'],
+                'qty' => [1],
+                'price' => [1000],
+                'description' => ['Test Connection'],
+                'returnUrl' => 'https://google.com',
+                'cancelUrl' => 'https://google.com',
+                'notifyUrl' => 'https://google.com',
+                'referenceId' => $refId,
+                'buyerName' => 'Test User',
+            ];
+            $this->info("Sending DUMMY payload for ref: $refId");
+        }
         
         try {
             $res = $client->createRedirectPayment($payload);
