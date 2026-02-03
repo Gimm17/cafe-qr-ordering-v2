@@ -21,17 +21,23 @@ class PaymentController extends Controller
         // Build payload for Redirect Payment
         $cfg = config('ipaymu');
         $items = $order->items()->get();
+        
+        // Ensure strictly typed arrays for iPaymu
+        $products = $items->pluck('product_name')->map(fn($v) => (string)$v)->values()->all();
+        $qtys = $items->pluck('qty')->map(fn($v) => (int)$v)->values()->all();
+        $prices = $items->pluck('unit_price')->map(fn($v) => (float)$v)->values()->all();
+        $descriptions = $items->pluck('note')->map(fn($v) => (string)($v ?? ''))->values()->all();
 
         $payload = [
-            'product' => $items->pluck('product_name')->values()->all(),
-            'qty' => $items->pluck('qty')->values()->all(),
-            'price' => $items->pluck('unit_price')->values()->all(),
-            'description' => $items->pluck('note')->map(fn($v) => $v ?? '')->values()->all(),
+            'product' => $products,
+            'qty' => $qtys,
+            'price' => $prices,
+            'description' => $descriptions,
             'returnUrl' => $cfg['return_url'].'?order_code='.$order->order_code,
             'cancelUrl' => $cfg['cancel_url'].'?order_code='.$order->order_code,
             'notifyUrl' => $cfg['notify_url'],
             'referenceId' => $order->order_code,
-            'buyerName' => $order->customer_name,
+            'buyerName' => (string)$order->customer_name,
         ];
 
         // create payment record
@@ -56,8 +62,9 @@ class PaymentController extends Controller
 
         if (!$paymentUrl) {
             Log::warning('iPaymu redirect payment failed', ['order' => $order->order_code, 'resp' => $res]);
+            $errorMsg = $body['Message'] ?? 'Gagal membuat sesi pembayaran. Silakan coba lagi.';
             return redirect()->route('cafe.order.show', ['order' => $order->order_code])
-                ->with('error', 'Gagal membuat sesi pembayaran. Coba lagi atau hubungi kasir.');
+                ->with('error', 'iPaymu Error: ' . $errorMsg);
         }
 
         return redirect()->away($paymentUrl);
