@@ -18,8 +18,8 @@ class CafeDemoSeeder extends Seeder
     {
         // Admin user
         User::firstOrCreate(
-            ['email' => 'admin@local.test'],
-            ['name' => 'Admin', 'password' => bcrypt('admin123'), 'is_admin' => true]
+            ['email' => 'admin@cafeqr.testing'],
+            ['name' => 'Admin', 'password' => bcrypt('PassAdmin17'), 'is_admin' => true]
         );
         // Tables
         for ($i = 1; $i <= 8; $i++) {
