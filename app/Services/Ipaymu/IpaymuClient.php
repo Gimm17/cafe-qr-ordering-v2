@@ -34,7 +34,7 @@ class IpaymuClient
             'va' => $va,
             'signature' => $signature,
             'timestamp' => $timestamp,
-        ])->post($url, $payload);
+        ])->withBody($jsonBody, 'application/json')->post($url);
 
         return [
             'http_status' => $res->status(),
