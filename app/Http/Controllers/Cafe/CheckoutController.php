@@ -16,7 +16,7 @@ class CheckoutController extends Controller
 
     public function index()
     {
-        $items = $this->cart->get();
+        $items = $this->cart->getFormattedItems();
         if (count($items) === 0) {
             return redirect()->route('cafe.menu')->with('error', 'Keranjang kosong.');
         }
