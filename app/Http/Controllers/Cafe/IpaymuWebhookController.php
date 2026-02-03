@@ -54,7 +54,10 @@ class IpaymuWebhookController extends Controller
         // Map statuses
         // status_code: 1 berhasil, 0 pending, -2 expired
         if ($statusCode === '1' || $status === 'berhasil' || $status === 'success') {
-            $order->update(['payment_status' => 'PAID']);
+            $order->update([
+                'payment_status' => 'PAID',
+                'order_status' => 'DIPROSES', // Auto-process saat bayar berhasil
+            ]);
             $payment->update([
                 'status' => 'PAID',
                 'gateway_trx_id' => $payload['trx_id'] ?? null,

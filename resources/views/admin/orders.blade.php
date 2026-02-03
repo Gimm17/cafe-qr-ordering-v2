@@ -78,23 +78,41 @@
 
                     <!-- Quick Status Update -->
                     @if($status !== 'SELESAI')
-                    <form action="{{ route('admin.orders.status', $order) }}" method="POST" class="mt-3" onclick="event.stopPropagation()">
-                        @csrf
+                    <div class="mt-3 flex gap-2" onclick="event.stopPropagation()">
                         @php
+                            // Skip DIPROSES for DITERIMA - akan otomatis saat PAID
+                            // DITERIMA + UNPAID -> tidak perlu tombol (tunggu bayar)
+                            // DITERIMA + PAID -> sudah otomatis ke DIPROSES via webhook
                             $nextStatus = match($status) {
-                                'DITERIMA' => 'DIPROSES',
+                                'DITERIMA' => null, // hilangkan, otomatis via webhook
                                 'DIPROSES' => 'READY',
                                 'READY' => 'SELESAI',
                                 default => null
                             };
                         @endphp
                         @if($nextStatus)
-                        <input type="hidden" name="status" value="{{ $nextStatus }}">
-                        <button type="submit" class="w-full py-2 bg-{{ $config['color'] }}-500 text-white rounded-lg text-sm font-medium hover:bg-{{ $config['color'] }}-600 transition-colors">
-                            → {{ $statusLabels[$nextStatus]['label'] }}
-                        </button>
+                        <form action="{{ route('admin.orders.status', $order) }}" method="POST" class="flex-1">
+                            @csrf
+                            <input type="hidden" name="status" value="{{ $nextStatus }}">
+                            <button type="submit" class="w-full py-2 bg-{{ $config['color'] }}-500 text-white rounded-lg text-sm font-medium hover:bg-{{ $config['color'] }}-600 transition-colors">
+                                → {{ $statusLabels[$nextStatus]['label'] }}
+                            </button>
+                        </form>
                         @endif
-                    </form>
+
+                        <!-- Delete button for unpaid orders -->
+                        @if($order->payment_status !== 'PAID')
+                        <form action="{{ route('admin.orders.delete', $order) }}" method="POST" onsubmit="return confirm('Hapus pesanan {{ $order->order_code }}?')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="px-3 py-2 bg-red-100 text-red-600 rounded-lg text-sm font-medium hover:bg-red-200 transition-colors" title="Hapus Pesanan">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                </svg>
+                            </button>
+                        </form>
+                        @endif
+                    </div>
                     @endif
                 </div>
                 @endforeach

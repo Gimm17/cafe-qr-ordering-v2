@@ -22,6 +22,7 @@ Route::prefix('admin')->group(function () {
         Route::get('/orders', [AdminOrderController::class, 'index'])->name('admin.orders');
         Route::get('/orders/{order}', [AdminOrderController::class, 'show'])->name('admin.orders.show');
         Route::post('/orders/{order}/status', [AdminOrderController::class, 'setStatus'])->name('admin.orders.status');
+        Route::delete('/orders/{order}', [AdminOrderController::class, 'destroy'])->name('admin.orders.delete');
 
         // Menu
         Route::get('/menu', [AdminMenuController::class, 'index'])->name('admin.menu');

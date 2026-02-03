@@ -32,5 +32,8 @@ Route::middleware(['web'])->group(function () {
         Route::get('/order/{order:order_code}', [OrderController::class, 'show'])->name('cafe.order.show');
         Route::get('/order/{order:order_code}/status', [OrderController::class, 'statusJson'])->name('cafe.order.status');
         Route::post('/order/{order:order_code}/feedback', [FeedbackController::class, 'store'])->name('cafe.order.feedback');
+        Route::post('/order/{order:order_code}/cancel', [OrderController::class, 'cancel'])->name('cafe.order.cancel');
+
+        Route::get('/history', [OrderController::class, 'history'])->name('cafe.history');
     });
 });

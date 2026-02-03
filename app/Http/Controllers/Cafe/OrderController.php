@@ -24,4 +24,53 @@ class OrderController extends Controller
             'updated_at' => $order->updated_at?->toISOString(),
         ]);
     }
+
+    /**
+     * Show order history for current table session
+     */
+    public function history()
+    {
+        $tableId = session('cafe_table_id');
+        
+        if (!$tableId) {
+            return redirect()->route('cafe.menu')->with('error', 'Silakan scan QR meja terlebih dahulu.');
+        }
+
+        // Get all orders for this table in the last 24 hours
+        $orders = Order::where('table_id', $tableId)
+            ->where('created_at', '>=', now()->subHours(24))
+            ->orderBy('created_at', 'desc')
+            ->with(['items', 'table'])
+            ->get();
+
+        return view('cafe.history', [
+            'orders' => $orders,
+            'tableNo' => session('cafe_table_no'),
+        ]);
+    }
+
+    /**
+     * Cancel an unpaid order
+     */
+    public function cancel(Order $order)
+    {
+        $tableId = session('cafe_table_id');
+
+        // Verify order belongs to this table
+        if ($order->table_id !== $tableId) {
+            return back()->with('error', 'Anda tidak dapat membatalkan pesanan ini.');
+        }
+
+        // Only allow cancel for unpaid orders
+        if ($order->payment_status === 'PAID') {
+            return back()->with('error', 'Pesanan yang sudah dibayar tidak dapat dibatalkan.');
+        }
+
+        // Delete the order
+        $order->items()->delete();
+        $order->payment()->delete();
+        $order->delete();
+
+        return redirect()->route('cafe.history')->with('success', 'Pesanan berhasil dibatalkan.');
+    }
 }

@@ -49,4 +49,23 @@ class AdminOrderController extends Controller
         $order->update(['order_status' => $data['status']]);
         return back()->with('success', 'Status diperbarui.');
     }
+
+    /**
+     * Delete a pending/unpaid order (admin only)
+     */
+    public function destroy(Order $order)
+    {
+        // Only allow deleting unpaid orders
+        if ($order->payment_status === 'PAID') {
+            return back()->with('error', 'Pesanan yang sudah dibayar tidak dapat dihapus.');
+        }
+
+        // Delete related records first
+        $order->items()->delete();
+        $order->payment()->delete();
+        $order->feedback()->delete();
+        $order->delete();
+
+        return back()->with('success', 'Pesanan berhasil dihapus.');
+    }
 }
