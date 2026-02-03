@@ -1,0 +1,6 @@
+Jika kamu sudah punya file:
+- app/Models/User.php
+- routes/web.php
+- bootstrap/app.php
+
+Jangan overwrite. Ikuti petunjuk di README untuk include route & register middleware/provider.
