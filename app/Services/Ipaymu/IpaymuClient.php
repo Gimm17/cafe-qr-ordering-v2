@@ -25,18 +25,16 @@ class IpaymuClient
         $url = rtrim($base, '/').'/api/v2/payment';
 
         $timestamp = $this->signer->timestamp();
-        // Use standard json_encode (same as Laravel HTTP uses internally)
-        $jsonBody = json_encode($payload);
+        $jsonBody = json_encode($payload, JSON_UNESCAPED_SLASHES);
 
         $signature = $this->signer->makeSignature('POST', $va, $apiKey, $jsonBody);
 
-        // Send raw JSON body to ensure it exactly matches the signed content
         $res = Http::withHeaders([
             'Content-Type' => 'application/json',
             'va' => $va,
             'signature' => $signature,
             'timestamp' => $timestamp,
-        ])->send('POST', $url, ['body' => $jsonBody]);
+        ])->post($url, $payload);
 
         return [
             'http_status' => $res->status(),

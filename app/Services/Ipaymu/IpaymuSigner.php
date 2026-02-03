@@ -13,7 +13,6 @@ class IpaymuSigner
     {
         $method = strtoupper($httpMethod);
         $bodyHash = strtolower(hash('sha256', $jsonBody));
-        // Format: HTTPMethod:VA:BodyHash:APIKey (verified working)
         $stringToSign = "{$method}:{$va}:{$bodyHash}:{$apiKey}";
         return hash_hmac('sha256', $stringToSign, $apiKey);
     }
