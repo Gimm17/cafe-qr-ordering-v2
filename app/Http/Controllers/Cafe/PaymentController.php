@@ -22,10 +22,10 @@ class PaymentController extends Controller
         $cfg = config('ipaymu');
         $items = $order->items()->get();
         
-        // Ensure strictly typed arrays for iPaymu
+        // Ensure strictly typed arrays for iPaymu (use int for prices like test command)
         $products = $items->pluck('product_name')->map(fn($v) => (string)$v)->values()->all();
         $qtys = $items->pluck('qty')->map(fn($v) => (int)$v)->values()->all();
-        $prices = $items->pluck('unit_price')->map(fn($v) => (float)$v)->values()->all();
+        $prices = $items->pluck('unit_price')->map(fn($v) => (int)$v)->values()->all();
         $descriptions = $items->pluck('note')->map(fn($v) => (string)($v ?? ''))->values()->all();
 
         $payload = [
