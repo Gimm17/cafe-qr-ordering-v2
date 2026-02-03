@@ -90,6 +90,11 @@
                         <div>
                             <h3 class="font-bold text-gray-800">{{ $order->order_code }}</h3>
                             <p class="text-xs text-gray-500">{{ $order->created_at->format('d M Y, H:i') }}</p>
+                            @if($order->payment_status !== 'PAID')
+                            <div class="text-xs text-amber-600 font-medium mt-1 countdown-timer" data-expires="{{ $order->created_at->addMinutes(10)->toISOString() }}">
+                                Sisa waktu: <span class="timer-display font-bold">--:--</span>
+                            </div>
+                            @endif
                         </div>
                         <div class="flex flex-col items-end gap-1">
                             <!-- Payment Status Badge -->
@@ -150,5 +155,37 @@
         </div>
         @endif
     </main>
+
+    <script>
+        function updateTimers() {
+            document.querySelectorAll('.countdown-timer').forEach(el => {
+                const expires = new Date(el.dataset.expires).getTime();
+                const now = new Date().getTime();
+                const distance = expires - now;
+
+                if (distance < 0) {
+                    el.innerHTML = '<span class="text-red-500 font-bold">Expired</span>';
+                    // Optional: reload page specifically if needed, but avoid infinite reload loops
+                    return;
+                }
+
+                // Kalkulasi waktu
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                const display = el.querySelector('.timer-display');
+                if (display) {
+                    display.innerText = 
+                        (minutes < 10 ? '0' : '') + minutes + ':' + 
+                        (seconds < 10 ? '0' : '') + seconds;
+                }
+            });
+        }
+        
+        // Update setiap detik
+        setInterval(updateTimers, 1000);
+        // Jalankan sekali saat load
+        updateTimers();
+    </script>
 </body>
 </html>

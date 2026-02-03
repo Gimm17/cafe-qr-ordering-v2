@@ -129,4 +129,33 @@
         </div>
         @endforeach
     </div>
+
+    <script>
+        function updateTimers() {
+            document.querySelectorAll('.countdown-timer').forEach(el => {
+                const expires = new Date(el.dataset.expires).getTime();
+                const now = new Date().getTime();
+                const distance = expires - now;
+
+                if (distance < 0) {
+                    el.innerHTML = '⚠️ Expired';
+                    el.classList.add('text-gray-500', 'bg-gray-100');
+                    el.classList.remove('text-red-600', 'bg-red-50');
+                    return;
+                }
+
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                const display = el.querySelector('.timer-display');
+                if (display) {
+                    display.innerText = 
+                        (minutes < 10 ? '0' : '') + minutes + ':' + 
+                        (seconds < 10 ? '0' : '') + seconds;
+                }
+            });
+        }
+        setInterval(updateTimers, 1000);
+        updateTimers();
+    </script>
 </x-admin-layout>

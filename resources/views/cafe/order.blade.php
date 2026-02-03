@@ -227,8 +227,35 @@
     </main>
 
     <!-- Auto-refresh for status updates -->
-    @if($order->order_status !== 'SELESAI')
+    @endif
+
     <script>
+        function updateTimers() {
+            document.querySelectorAll('.countdown-timer').forEach(el => {
+                const expires = new Date(el.dataset.expires).getTime();
+                const now = new Date().getTime();
+                const distance = expires - now;
+
+                if (distance < 0) {
+                    el.innerHTML = '<span class="text-red-500 font-bold block text-center mb-2">Expired</span>';
+                    return;
+                }
+
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                const display = el.querySelector('.timer-display');
+                if (display) {
+                    display.innerText = 
+                        (minutes < 10 ? '0' : '') + minutes + ':' + 
+                        (seconds < 10 ? '0' : '') + seconds;
+                }
+            });
+        }
+        setInterval(updateTimers, 1000);
+        updateTimers();
+
+        @if($order->order_status !== 'SELESAI')
         // Poll for status updates every 10 seconds
         setInterval(async () => {
             try {
@@ -242,7 +269,7 @@
                 console.log('Status check failed');
             }
         }, 10000);
+        @endif
     </script>
-    @endif
 </body>
 </html>
