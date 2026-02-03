@@ -55,6 +55,7 @@ Route::prefix('admin')->group(function () {
         Route::post('/tables', [AdminTableController::class, 'store'])->name('admin.tables.store');
         Route::post('/tables/{table}/rotate-token', [AdminTableController::class, 'rotateToken'])->name('admin.tables.rotate');
         Route::get('/tables/{table}/qr.png', [AdminTableController::class, 'qrPng'])->name('admin.tables.qr');
+        Route::get('/tables/{table}/download/{format}', [AdminTableController::class, 'downloadQr'])->name('admin.tables.qr.download');
 
         // Feedback
         Route::get('/feedback', [AdminFeedbackController::class, 'index'])->name('admin.feedback');
