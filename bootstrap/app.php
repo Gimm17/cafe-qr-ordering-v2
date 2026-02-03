@@ -23,6 +23,12 @@ return Application::configure(basePath: dirname(__DIR__))
             'cafe.table' => \App\Http\Middleware\EnsureTableContext::class,
             'admin' => \App\Http\Middleware\EnsureAdmin::class,
         ]);
+        
+        // Exclude iPaymu webhook from CSRF verification
+        $middleware->validateCsrfTokens(except: [
+            'ipaymu/notify',
+            '/ipaymu/notify',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
