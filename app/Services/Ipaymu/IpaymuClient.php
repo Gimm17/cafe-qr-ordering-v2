@@ -2,7 +2,6 @@
 
 namespace App\Services\Ipaymu;
 
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Arr;
 
@@ -27,7 +26,7 @@ class IpaymuClient
 
         $timestamp = $this->signer->timestamp();
 
-        // Canonical JSON (hindari escape slash yang sering bikin beda hash)
+        // Canonical JSON
         $jsonBody = json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
         
         if ($jsonBody === false) {
@@ -36,7 +35,7 @@ class IpaymuClient
 
         $signature = $this->signer->makeSignature('POST', $va, $apiKey, $jsonBody);
 
-        // Debug log (temporary)
+        // Debug log
         Log::info('IPAYMU DEBUG', [
             'url' => $url,
             'timestamp' => $timestamp,
@@ -46,18 +45,43 @@ class IpaymuClient
             'signature' => $signature,
         ]);
 
-        $res = Http::withHeaders([
-            'Content-Type' => 'application/json',
-            'Accept' => 'application/json',
-            'va' => $va,
-            'signature' => $signature,
-            'timestamp' => $timestamp,
-        ])->withBody($jsonBody, 'application/json')->post($url);
+        // Use native cURL instead of Laravel HTTP Client
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => $jsonBody,
+            CURLOPT_HTTPHEADER => [
+                'Content-Type: application/json',
+                'Accept: application/json',
+                'va: ' . $va,
+                'signature: ' . $signature,
+                'timestamp: ' . $timestamp,
+            ],
+            CURLOPT_SSL_VERIFYPEER => true,
+            CURLOPT_TIMEOUT => 30,
+        ]);
+
+        $response = curl_exec($ch);
+        $httpStatus = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $error = curl_error($ch);
+        curl_close($ch);
+
+        if ($error) {
+            Log::error('IPAYMU cURL ERROR', ['error' => $error]);
+            return [
+                'http_status' => 0,
+                'body' => ['Message' => 'cURL Error: ' . $error],
+                'raw' => $error,
+            ];
+        }
+
+        $body = json_decode($response, true) ?? [];
 
         return [
-            'http_status' => $res->status(),
-            'body' => $res->json(),
-            'raw' => $res->body(),
+            'http_status' => $httpStatus,
+            'body' => $body,
+            'raw' => $response,
         ];
     }
 

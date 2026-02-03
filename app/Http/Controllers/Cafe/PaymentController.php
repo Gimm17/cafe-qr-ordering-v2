@@ -28,7 +28,8 @@ class PaymentController extends Controller
         $qtys = $items->pluck('qty')->map(fn($v) => (int)$v)->values()->all();
         // penting: jangan float, bikin encoding beda-beda
         $prices = $items->pluck('unit_price')->map(fn($v) => (int) round((float) $v))->values()->all();
-        $descriptions = $items->pluck('note')->map(fn($v) => (string)($v ?? ''))->values()->all();
+        // PENTING: description tidak boleh kosong - gunakan product name sebagai fallback
+        $descriptions = $items->map(fn($item) => (string)($item->note ?: $item->product_name))->values()->all();
 
         $payload = [
             'account' => $va,  // ✅ WAJIB untuk Payment Redirect v2
