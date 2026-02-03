@@ -31,15 +31,20 @@ class PaymentController extends Controller
         // PENTING: description tidak boleh kosong - gunakan product name sebagai fallback
         $descriptions = $items->map(fn($item) => (string)($item->note ?: $item->product_name))->values()->all();
 
+        // Generate callback URLs using route() helper (otomatis sinkron dengan route definition)
+        $returnUrl = route('ipaymu.return', ['order_code' => $order->order_code], true);
+        $cancelUrl = route('ipaymu.cancel', ['order_code' => $order->order_code], true);
+        $notifyUrl = route('ipaymu.notify', [], true);
+
         $payload = [
             'account' => $va,  // ✅ WAJIB untuk Payment Redirect v2
             'product' => $products,
             'qty' => $qtys,
             'price' => $prices,
             'description' => $descriptions,
-            'returnUrl' => $cfg['return_url'].'?order_code='.$order->order_code,
-            'cancelUrl' => $cfg['cancel_url'].'?order_code='.$order->order_code,
-            'notifyUrl' => $cfg['notify_url'],
+            'returnUrl' => $returnUrl,
+            'cancelUrl' => $cancelUrl,
+            'notifyUrl' => $notifyUrl,
             'referenceId' => $order->order_code,
             'buyerName' => (string)$order->customer_name,
         ];
