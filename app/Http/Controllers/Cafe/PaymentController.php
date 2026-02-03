@@ -20,15 +20,18 @@ class PaymentController extends Controller
 
         // Build payload for Redirect Payment
         $cfg = config('ipaymu');
+        $va = (string) ($cfg['va'] ?? '');
         $items = $order->items()->get();
         
-        // Ensure strictly typed arrays for iPaymu (use int for prices like test command)
+        // Ensure strictly typed arrays for iPaymu
         $products = $items->pluck('product_name')->map(fn($v) => (string)$v)->values()->all();
         $qtys = $items->pluck('qty')->map(fn($v) => (int)$v)->values()->all();
-        $prices = $items->pluck('unit_price')->map(fn($v) => (int)$v)->values()->all();
+        // penting: jangan float, bikin encoding beda-beda
+        $prices = $items->pluck('unit_price')->map(fn($v) => (int) round((float) $v))->values()->all();
         $descriptions = $items->pluck('note')->map(fn($v) => (string)($v ?? ''))->values()->all();
 
         $payload = [
+            'account' => $va,  // ✅ WAJIB untuk Payment Redirect v2
             'product' => $products,
             'qty' => $qtys,
             'price' => $prices,

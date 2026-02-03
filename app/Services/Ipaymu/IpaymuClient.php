@@ -3,6 +3,7 @@
 namespace App\Services\Ipaymu;
 
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Arr;
 
 class IpaymuClient
@@ -25,12 +26,29 @@ class IpaymuClient
         $url = rtrim($base, '/').'/api/v2/payment';
 
         $timestamp = $this->signer->timestamp();
-        $jsonBody = json_encode($payload, JSON_UNESCAPED_SLASHES);
+
+        // Canonical JSON (hindari escape slash yang sering bikin beda hash)
+        $jsonBody = json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        
+        if ($jsonBody === false) {
+            throw new \RuntimeException('Gagal encode JSON payload iPaymu: ' . json_last_error_msg());
+        }
 
         $signature = $this->signer->makeSignature('POST', $va, $apiKey, $jsonBody);
 
+        // Debug log (temporary)
+        Log::info('IPAYMU DEBUG', [
+            'url' => $url,
+            'timestamp' => $timestamp,
+            'va' => $va,
+            'jsonBody' => $jsonBody,
+            'bodyHash' => strtolower(hash('sha256', $jsonBody)),
+            'signature' => $signature,
+        ]);
+
         $res = Http::withHeaders([
             'Content-Type' => 'application/json',
+            'Accept' => 'application/json',
             'va' => $va,
             'signature' => $signature,
             'timestamp' => $timestamp,

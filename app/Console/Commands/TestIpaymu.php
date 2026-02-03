@@ -42,6 +42,7 @@ class TestIpaymu extends Command
             $descriptions = $items->pluck('note')->map(fn($v) => (string)($v ?? ''))->values()->all();
             
             $payload = [
+                'account' => $cfg['va'],  // WAJIB
                 'product' => $products,
                 'qty' => $qtys,
                 'price' => $prices,
@@ -59,6 +60,7 @@ class TestIpaymu extends Command
         } else {
             $refId = 'TEST-' . \Illuminate\Support\Str::random(6);
             $payload = [
+                'account' => $cfg['va'],  // WAJIB
                 'product' => ['Test Item'],
                 'qty' => [1],
                 'price' => [1000],

@@ -19,7 +19,8 @@ class IpaymuSigner
 
     public function timestamp(): string
     {
-        // Format: YYYYMMDDhhmmss
-        return now()->format('YmdHis');
+        // iPaymu header timestamp format: YYYYMMDDhhmmss
+        // Pakai WIB agar tidak meleset validasi jam
+        return now('Asia/Jakarta')->format('YmdHis');
     }
 }
