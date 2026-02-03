@@ -33,9 +33,4 @@ Route::middleware(['web'])->group(function () {
         Route::get('/order/{order:order_code}/status', [OrderController::class, 'statusJson'])->name('cafe.order.status');
         Route::post('/order/{order:order_code}/feedback', [FeedbackController::class, 'store'])->name('cafe.order.feedback');
     });
-
-    // iPaymu callbacks
-    Route::get('/ipaymu/return', [PaymentController::class, 'return'])->name('ipaymu.return');
-    Route::get('/ipaymu/cancel', [PaymentController::class, 'cancel'])->name('ipaymu.cancel');
-    Route::post('/ipaymu/notify', [IpaymuWebhookController::class, 'handle'])->name('ipaymu.notify');
 });
