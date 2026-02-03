@@ -18,6 +18,13 @@ class PaymentController extends Controller
             return redirect()->route('cafe.order.show', ['order' => $order->order_code]);
         }
 
+        // Check if order is expired (older than 10 minutes)
+        if ($order->created_at->diffInMinutes(now()) >= 10) {
+            $order->update(['payment_status' => 'EXPIRED']);
+            return redirect()->route('cafe.order.show', ['order' => $order->order_code])
+                ->with('error', 'Pesanan telah kadaluarsa. Silakan pesan ulang.');
+        }
+
         // Build payload for Redirect Payment
         $cfg = config('ipaymu');
         $va = (string) ($cfg['va'] ?? '');

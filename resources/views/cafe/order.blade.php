@@ -68,25 +68,7 @@
         </div>
 
         <!-- Payment Status -->
-        @if($order->payment_status !== 'PAID')
-        <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-6">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center">
-                    <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                    </svg>
-                </div>
-                <div class="flex-1">
-                    <p class="font-semibold text-amber-800">Menunggu Pembayaran</p>
-                    <p class="text-sm text-amber-600">Silakan selesaikan pembayaran</p>
-                </div>
-            </div>
-            <a href="{{ route('cafe.pay', $order->order_code) }}" 
-               class="block w-full mt-4 py-3 bg-amber-500 text-white text-center font-semibold rounded-xl hover:bg-amber-600 transition-colors">
-                Bayar Sekarang
-            </a>
-        </div>
-        @else
+        @if($order->payment_status === 'PAID')
         <div class="bg-green-50 border border-green-200 rounded-2xl p-4 mb-6">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
@@ -99,6 +81,43 @@
                     <p class="text-sm text-green-600">Pesanan sedang diproses</p>
                 </div>
             </div>
+        </div>
+        @elseif($order->payment_status === 'EXPIRED' || $order->created_at->diffInMinutes(now()) >= 10)
+        <div class="bg-red-50 border border-red-200 rounded-2xl p-4 mb-6">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                    <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </div>
+                <div>
+                    <p class="font-semibold text-red-800">Pesanan Kadaluarsa</p>
+                    <p class="text-sm text-red-600">Waktu pembayaran habis. Silakan pesan ulang.</p>
+                </div>
+            </div>
+            <a href="{{ route('cafe.menu') }}" class="block w-full mt-4 py-3 bg-red-600 text-white text-center font-semibold rounded-xl hover:bg-red-700 transition-colors">
+                Pesan Ulang
+            </a>
+        </div>
+        @else
+        <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-6">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center">
+                    <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                </div>
+                <div class="flex-1">
+                    <p class="font-semibold text-amber-800">Menunggu Pembayaran</p>
+                    <div class="text-sm text-amber-600 countdown-timer mt-1 font-medium" data-expires="{{ $order->created_at->addMinutes(10)->toISOString() }}">
+                        Sisa Waktu: <span class="timer-display">--:--</span>
+                    </div>
+                </div>
+            </div>
+            <a href="{{ route('cafe.pay', $order->order_code) }}" 
+               class="block w-full mt-4 py-3 bg-amber-500 text-white text-center font-semibold rounded-xl hover:bg-amber-600 transition-colors">
+                Bayar Sekarang
+            </a>
         </div>
         @endif
 

@@ -90,7 +90,7 @@
                         <div>
                             <h3 class="font-bold text-gray-800">{{ $order->order_code }}</h3>
                             <p class="text-xs text-gray-500">{{ $order->created_at->format('d M Y, H:i') }}</p>
-                            @if($order->payment_status !== 'PAID')
+                            @if($order->payment_status !== 'PAID' && $order->created_at->diffInMinutes(now()) < 10)
                             <div class="text-xs text-amber-600 font-medium mt-1 countdown-timer" data-expires="{{ $order->created_at->addMinutes(10)->toISOString() }}">
                                 Sisa waktu: <span class="timer-display font-bold">--:--</span>
                             </div>
@@ -98,8 +98,11 @@
                         </div>
                         <div class="flex flex-col items-end gap-1">
                             <!-- Payment Status Badge -->
+                            <!-- Payment Status Badge -->
                             @if($order->payment_status === 'PAID')
                             <span class="px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">✓ Paid</span>
+                            @elseif($order->payment_status === 'EXPIRED' || $order->created_at->diffInMinutes(now()) >= 10)
+                            <span class="px-2 py-1 bg-red-100 text-red-700 text-xs font-medium rounded-full">Expired</span>
                             @else
                             <span class="px-2 py-1 bg-amber-100 text-amber-700 text-xs font-medium rounded-full">Unpaid</span>
                             @endif
@@ -132,7 +135,7 @@
                             Lihat Detail
                         </a>
 
-                        @if($order->payment_status !== 'PAID')
+                        @if($order->payment_status !== 'PAID' && $order->payment_status !== 'EXPIRED' && $order->created_at->diffInMinutes(now()) < 10)
                         <!-- Pay Button -->
                         <a href="{{ route('cafe.pay', $order) }}" class="flex-1 py-2 text-center bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors">
                             Bayar

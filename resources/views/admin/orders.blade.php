@@ -55,8 +55,14 @@
                 <div class="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer" onclick="window.location='{{ route('admin.orders.show', $order) }}'">
                     <div class="flex justify-between items-start mb-2">
                         <span class="font-bold text-gray-800">{{ $order->order_code }}</span>
-                        <span class="text-xs px-2 py-1 rounded-full font-medium {{ $order->payment_status === 'PAID' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' }}">
-                            {{ $order->payment_status === 'PAID' ? '✓ Paid' : 'Unpaid' }}
+                        <span class="text-xs px-2 py-1 rounded-full font-medium {{ $order->payment_status === 'PAID' ? 'bg-green-100 text-green-700' : ($order->payment_status === 'EXPIRED' || $order->created_at->diffInMinutes(now()) >= 10 ? 'bg-gray-100 text-gray-500' : 'bg-red-100 text-red-700') }}">
+                            @if($order->payment_status === 'PAID')
+                                ✓ Paid
+                            @elseif($order->payment_status === 'EXPIRED' || $order->created_at->diffInMinutes(now()) >= 10)
+                                Expired
+                            @else
+                                Unpaid
+                            @endif
                         </span>
                     </div>
                     
@@ -75,6 +81,12 @@
                         <span>{{ $order->created_at->diffForHumans() }}</span>
                         <span class="font-semibold text-gray-700">Rp {{ number_format($order->grand_total, 0, ',', '.') }}</span>
                     </div>
+
+                    @if($order->payment_status !== 'PAID' && $order->created_at->diffInMinutes(now()) < 10)
+                    <div class="mt-2 text-xs text-amber-600 font-bold bg-amber-50 p-1 rounded text-center countdown-timer" data-expires="{{ $order->created_at->addMinutes(10)->toISOString() }}">
+                        ⏳ <span class="timer-display">--:--</span>
+                    </div>
+                    @endif
 
                     <!-- Quick Status Update -->
                     @if($status !== 'SELESAI')
