@@ -18,11 +18,20 @@ class OrderController extends Controller
 
     public function statusJson(Order $order)
     {
+        // Generate ETag based on order's last update and status
+        $etag = 'W/"' . $order->updated_at->timestamp . '-' . $order->order_status . '-' . $order->payment_status . '"';
+        
+        // Check if client's cached version is still valid
+        $clientEtag = request()->headers->get('If-None-Match');
+        if ($clientEtag === $etag) {
+            return response('', 304)->setEtag($etag, true);
+        }
+
         return response()->json([
             'order_status' => $order->order_status,
             'payment_status' => $order->payment_status,
             'updated_at' => $order->updated_at?->toISOString(),
-        ]);
+        ])->setEtag($etag, true);
     }
 
     /**

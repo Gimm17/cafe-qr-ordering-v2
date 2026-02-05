@@ -275,19 +275,94 @@
         updateTimers();
 
         @if($order->order_status !== 'SELESAI')
-        // Poll for status updates every 10 seconds
-        setInterval(async () => {
-            try {
-                const response = await fetch('{{ route("cafe.order.status", $order->order_code) }}');
-                const data = await response.json();
-                
-                if (data.order_status !== '{{ $order->order_status }}' || data.payment_status !== '{{ $order->payment_status }}') {
-                    window.location.reload();
+        // Smart Polling with ETag, Backoff, and Visibility API
+        (function() {
+            let pollInterval = 10000; // Start at 10 seconds
+            const maxInterval = 60000; // Max 60 seconds
+            const minInterval = 10000; // Min 10 seconds
+            let lastEtag = null;
+            let pollTimer = null;
+            let isPageVisible = !document.hidden;
+            
+            // Status text mapping
+            const statusLabels = {
+                'DITERIMA': 'Pesanan Diterima',
+                'DIPROSES': 'Sedang Diproses',
+                'READY': 'Siap Diambil/Diantar',
+                'SELESAI': 'Selesai'
+            };
+            
+            async function pollStatus() {
+                if (!isPageVisible) {
+                    schedulePoll();
+                    return;
                 }
-            } catch (e) {
-                console.log('Status check failed');
+                
+                try {
+                    const headers = {};
+                    if (lastEtag) {
+                        headers['If-None-Match'] = lastEtag;
+                    }
+                    
+                    const response = await fetch('{{ route("cafe.order.status", $order->order_code) }}', {
+                        headers: headers
+                    });
+                    
+                    // Store new ETag
+                    const newEtag = response.headers.get('ETag');
+                    if (newEtag) {
+                        lastEtag = newEtag;
+                    }
+                    
+                    if (response.status === 304) {
+                        // Not modified - increase backoff
+                        pollInterval = Math.min(pollInterval * 2, maxInterval);
+                        console.log('Status unchanged, next poll in', pollInterval/1000, 's');
+                    } else if (response.ok) {
+                        const data = await response.json();
+                        
+                        // Check if status changed
+                        const currentOrderStatus = '{{ $order->order_status }}';
+                        const currentPaymentStatus = '{{ $order->payment_status }}';
+                        
+                        if (data.order_status !== currentOrderStatus || data.payment_status !== currentPaymentStatus) {
+                            // Status changed - reload to get fresh view
+                            window.location.reload();
+                            return;
+                        }
+                        
+                        // Reset backoff on successful response
+                        pollInterval = minInterval;
+                    }
+                } catch (e) {
+                    console.log('Status check failed:', e.message);
+                    // On error, increase backoff
+                    pollInterval = Math.min(pollInterval * 2, maxInterval);
+                }
+                
+                schedulePoll();
             }
-        }, 10000);
+            
+            function schedulePoll() {
+                if (pollTimer) {
+                    clearTimeout(pollTimer);
+                }
+                pollTimer = setTimeout(pollStatus, pollInterval);
+            }
+            
+            // Visibility API - pause/resume polling
+            document.addEventListener('visibilitychange', function() {
+                isPageVisible = !document.hidden;
+                if (isPageVisible) {
+                    // Tab became visible - poll immediately with reset interval
+                    pollInterval = minInterval;
+                    pollStatus();
+                }
+            });
+            
+            // Start polling
+            schedulePoll();
+        })();
         @endif
     </script>
 </body>

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class MenuController extends Controller
 {
@@ -14,9 +15,12 @@ class MenuController extends Controller
         $search = $request->get('search');
         $categoryId = $request->get('category');
         
-        $categories = Category::where('is_active', true)
-            ->orderBy('sort_order')
-            ->get();
+        // Cache categories for 60 seconds (they rarely change)
+        $categories = Cache::remember('menu_categories', 60, function () {
+            return Category::where('is_active', true)
+                ->orderBy('sort_order')
+                ->get();
+        });
 
         $productsQuery = Product::where('is_active', true)
             ->with('category')
@@ -65,3 +69,4 @@ class MenuController extends Controller
         ]);
     }
 }
+

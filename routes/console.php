@@ -10,4 +10,4 @@ Artisan::command('inspire', function () {
 
 // Schedule cleanup for pending orders older than 10 minutes
 // Run every minute
-Schedule::command('orders:cleanup-pending --minutes=10')->everyMinute();
+Schedule::command('orders:cleanup-pending --minutes=10')->everyFiveMinutes();

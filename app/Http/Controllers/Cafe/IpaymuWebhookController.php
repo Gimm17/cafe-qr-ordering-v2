@@ -18,6 +18,11 @@ class IpaymuWebhookController extends Controller
      */
     public function handle(Request $req)
     {
+        // Handle GET requests for URL validation by payment gateway
+        if ($req->isMethod('get')) {
+            return response('OK', 200);
+        }
+
         $payload = $req->all();
         $reference = $payload['reference_id'] ?? $payload['referenceId'] ?? $payload['reference'] ?? null;
         $statusCode = (string)($payload['status_code'] ?? $payload['statusCode'] ?? '');

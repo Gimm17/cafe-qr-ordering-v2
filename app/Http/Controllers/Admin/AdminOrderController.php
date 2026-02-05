@@ -10,7 +10,9 @@ class AdminOrderController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Order::with('table')->orderByDesc('created_at');
+        $query = Order::with('table')
+            ->where('created_at', '>=', now()->subDays(7))
+            ->orderByDesc('created_at');
         
         // Filter by status
         if ($request->has('status') && $request->status) {
