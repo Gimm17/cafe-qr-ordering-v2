@@ -11,7 +11,7 @@ use App\Http\Controllers\Cafe\FeedbackController;
 use App\Http\Controllers\Cafe\IpaymuWebhookController;
 
 Route::middleware(['web'])->group(function () {
-    Route::get('/t/{token}', [TableSessionController::class, 'enter'])->name('cafe.table.enter');
+    // Note: /t/{token} route is defined in web.php to keep QR URLs at root level
     Route::get('/table/{tableNo}', [TableSessionController::class, 'enterByNumber'])->name('cafe.table.enter.number');
 
     Route::middleware(['cafe.table'])->group(function () {
