@@ -10,7 +10,12 @@ class OrderController extends Controller
     public function show(Order $order)
     {
         // F-05: Ownership check — order harus milik table session saat ini
-        if ($order->table_id !== session('cafe_table_id')) {
+        // REVISION: Allow access if order is PAID/COMPLETED to handle cross-browser payment returns
+        $isMyOrder = $order->table_id === session('cafe_table_id');
+        $isPaidOrFinished = in_array($order->payment_status, ['PAID', 'SETTLED']) || 
+                           in_array($order->order_status, ['DIPROSES', 'READY', 'SELESAI']);
+
+        if (!$isMyOrder && !$isPaidOrFinished) {
             abort(403, 'Akses ditolak: pesanan bukan milik meja Anda.');
         }
 
@@ -24,7 +29,12 @@ class OrderController extends Controller
     public function statusJson(Order $order)
     {
         // F-05: Ownership check
-        if ($order->table_id !== session('cafe_table_id')) {
+        // REVISION: Allow polling if order is PAID/COMPLETED
+        $isMyOrder = $order->table_id === session('cafe_table_id');
+        $isPaidOrFinished = in_array($order->payment_status, ['PAID', 'SETTLED']) || 
+                           in_array($order->order_status, ['DIPROSES', 'READY', 'SELESAI']);
+
+        if (!$isMyOrder && !$isPaidOrFinished) {
             abort(403, 'Akses ditolak.');
         }
 
