@@ -9,34 +9,18 @@ class OrderController extends Controller
 {
     public function show(Order $order)
     {
-        // F-05: Ownership check — order harus milik table session saat ini
-        // REVISION: Allow access if order is PAID/COMPLETED to handle cross-browser payment returns
-        $isMyOrder = $order->table_id === session('cafe_table_id');
-        $isPaidOrFinished = in_array($order->payment_status, ['PAID', 'SETTLED']) || 
-                           in_array($order->order_status, ['DIPROSES', 'READY', 'SELESAI']);
-
-        if (!$isMyOrder && !$isPaidOrFinished) {
-            abort(403, 'Akses ditolak: pesanan bukan milik meja Anda.');
-        }
-
+        // Access control: order_code is a random unguessable string (e.g. A-20260210-EDUFDI)
+        // that acts as the access token. No session check needed for viewing.
         $order->load('items','feedback','table');
         return view('cafe.order', [
             'order' => $order,
-            'tableNo' => session('cafe_table_no'),
+            'tableNo' => $order->table?->table_no ?? session('cafe_table_no'),
         ]);
     }
 
     public function statusJson(Order $order)
     {
-        // F-05: Ownership check
-        // REVISION: Allow polling if order is PAID/COMPLETED
-        $isMyOrder = $order->table_id === session('cafe_table_id');
-        $isPaidOrFinished = in_array($order->payment_status, ['PAID', 'SETTLED']) || 
-                           in_array($order->order_status, ['DIPROSES', 'READY', 'SELESAI']);
-
-        if (!$isMyOrder && !$isPaidOrFinished) {
-            abort(403, 'Akses ditolak.');
-        }
+        // Access control: same as show() — order_code is the auth token
 
         // Generate ETag based on order's last update and status
         $etag = 'W/"' . $order->updated_at->timestamp . '-' . $order->order_status . '-' . $order->payment_status . '"';
