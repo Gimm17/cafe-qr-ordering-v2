@@ -28,5 +28,21 @@ class AdminUserSeeder extends Seeder
                 'is_admin' => true,
             ]
         );
+
+        // Additional Admin (Optional)
+        $secondEmail = env('SECOND_ADMIN_EMAIL');
+        $secondPassword = env('SECOND_ADMIN_PASSWORD');
+
+        if ($secondEmail && $secondPassword) {
+            User::updateOrCreate(
+                ['email' => $secondEmail],
+                [
+                    'name' => 'Admin 2',
+                    'password' => Hash::make($secondPassword),
+                    'is_admin' => true,
+                ]
+            );
+            $this->command?->info("✅ Second admin seeded: $secondEmail");
+        }
     }
 }
