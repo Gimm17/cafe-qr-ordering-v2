@@ -35,17 +35,50 @@ class IpaymuClient
 
         $signature = $this->signer->makeSignature('POST', $va, $apiKey, $jsonBody);
 
-        // Debug log
-        Log::info('IPAYMU DEBUG', [
-            'url' => $url,
-            'timestamp' => $timestamp,
-            'va' => $va,
-            'jsonBody' => $jsonBody,
-            'bodyHash' => strtolower(hash('sha256', $jsonBody)),
-            'signature' => $signature,
-        ]);
+        // Sensitive data removed from log (F-06)
+        Log::debug('IPAYMU payment request', ['url' => $url]);
 
-        // Use native cURL instead of Laravel HTTP Client
+        return $this->curlPost($url, $jsonBody, $va, $signature, $timestamp);
+    }
+
+    /**
+     * Check Transaction — Server-to-server verification (F-03)
+     * Endpoint: POST /api/v2/transaction
+     * Body: { "transactionId": <trx_id>, "account": <va> }
+     */
+    public function checkTransaction(string $trxId): array
+    {
+        $cfg = config('ipaymu');
+        $va = $cfg['va'];
+        $apiKey = $cfg['api_key'];
+
+        if (!$va || !$apiKey) {
+            throw new \RuntimeException('IPAYMU_VA / IPAYMU_API_KEY belum di-set di .env');
+        }
+
+        $base = $cfg['env'] === 'production' ? $cfg['production_base'] : $cfg['sandbox_base'];
+        $url = rtrim($base, '/').'/api/v2/transaction';
+
+        $timestamp = $this->signer->timestamp();
+
+        $payload = [
+            'transactionId' => $trxId,
+            'account' => $va,
+        ];
+
+        $jsonBody = json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        $signature = $this->signer->makeSignature('POST', $va, $apiKey, $jsonBody);
+
+        Log::debug('IPAYMU checkTransaction', ['trx_id' => $trxId]);
+
+        return $this->curlPost($url, $jsonBody, $va, $signature, $timestamp);
+    }
+
+    /**
+     * Shared cURL POST helper
+     */
+    private function curlPost(string $url, string $jsonBody, string $va, string $signature, string $timestamp): array
+    {
         $ch = curl_init($url);
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
@@ -87,8 +120,7 @@ class IpaymuClient
 
     public function parseRedirectUrl(array $responseBody): ?string
     {
-        // Expected: { Status:200, Data:{ SessionID:"..", Url:"https://.."} }
-        return Arr::get($responseBody, 'Data.Url') ?? Arr::get($responseBody, 'Data.Url'.'') ?? null;
+        return Arr::get($responseBody, 'Data.Url') ?? null;
     }
 
     public function parseSessionId(array $responseBody): ?string

@@ -9,6 +9,11 @@ class OrderController extends Controller
 {
     public function show(Order $order)
     {
+        // F-05: Ownership check — order harus milik table session saat ini
+        if ($order->table_id !== session('cafe_table_id')) {
+            abort(403, 'Akses ditolak: pesanan bukan milik meja Anda.');
+        }
+
         $order->load('items','feedback','table');
         return view('cafe.order', [
             'order' => $order,
@@ -18,6 +23,11 @@ class OrderController extends Controller
 
     public function statusJson(Order $order)
     {
+        // F-05: Ownership check
+        if ($order->table_id !== session('cafe_table_id')) {
+            abort(403, 'Akses ditolak.');
+        }
+
         // Generate ETag based on order's last update and status
         $etag = 'W/"' . $order->updated_at->timestamp . '-' . $order->order_status . '-' . $order->payment_status . '"';
         
@@ -31,7 +41,8 @@ class OrderController extends Controller
             'order_status' => $order->order_status,
             'payment_status' => $order->payment_status,
             'updated_at' => $order->updated_at?->toISOString(),
-        ])->setEtag($etag, true);
+        ])->setEtag($etag, true)
+           ->header('Cache-Control', 'private, no-cache');
     }
 
     /**

@@ -12,7 +12,7 @@ use App\Http\Controllers\Admin\AdminModifierController;
 
 Route::prefix('admin')->group(function () {
     Route::get('/login', [AdminAuthController::class, 'show'])->name('admin.login');
-    Route::post('/login', [AdminAuthController::class, 'login'])->name('admin.login.post');
+    Route::post('/login', [AdminAuthController::class, 'login'])->middleware('throttle:10,1')->name('admin.login.post');
     Route::post('/logout', [AdminAuthController::class, 'logout'])->name('admin.logout');
 
     Route::middleware(['web','admin'])->group(function () {

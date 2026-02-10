@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Admin Login</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="bg-gray-50">
   <div class="max-w-md mx-auto min-h-screen flex items-center justify-center p-4">
@@ -29,9 +29,7 @@
         <button class="w-full rounded-xl bg-gray-900 text-white py-3 font-semibold">Login</button>
       </form>
 
-      <div class="mt-4 text-xs text-gray-500">
-        Default (demo): admin@local.test / admin123
-      </div>
+      {{-- Default credentials removed for security (F-02) --}}
     </div>
   </div>
 </body>

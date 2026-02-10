@@ -30,7 +30,7 @@ Route::middleware(['web'])->group(function () {
         Route::get('/pay/{order:order_code}', [PaymentController::class, 'redirect'])->name('cafe.pay');
 
         Route::get('/order/{order:order_code}', [OrderController::class, 'show'])->name('cafe.order.show');
-        Route::get('/order/{order:order_code}/status', [OrderController::class, 'statusJson'])->name('cafe.order.status');
+        Route::get('/order/{order:order_code}/status', [OrderController::class, 'statusJson'])->middleware('throttle:60,1')->name('cafe.order.status');
         Route::post('/order/{order:order_code}/feedback', [FeedbackController::class, 'store'])->name('cafe.order.feedback');
         Route::post('/order/{order:order_code}/cancel', [OrderController::class, 'cancel'])->name('cafe.order.cancel');
 

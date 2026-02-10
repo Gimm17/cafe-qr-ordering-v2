@@ -14,4 +14,5 @@ Route::get('/t/{token}', [TableSessionController::class, 'enter'])->name('cafe.t
 // iPaymu callbacks (must be at root level - no prefix)
 Route::get('/ipaymu/return', [PaymentController::class, 'return'])->name('ipaymu.return');
 Route::get('/ipaymu/cancel', [PaymentController::class, 'cancel'])->name('ipaymu.cancel');
-Route::match(['GET', 'POST'], '/ipaymu/notify', [IpaymuWebhookController::class, 'handle'])->name('ipaymu.notify');
+Route::get('/ipaymu/notify', fn () => response('OK', 200))->name('ipaymu.notify.ping');
+Route::post('/ipaymu/notify', [IpaymuWebhookController::class, 'handle'])->name('ipaymu.notify');

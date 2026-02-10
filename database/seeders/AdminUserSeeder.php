@@ -10,11 +10,21 @@ class AdminUserSeeder extends Seeder
 {
     public function run(): void
     {
+        $email = env('ADMIN_EMAIL', 'admin@local.test');
+        $password = env('ADMIN_PASSWORD', 'admin123');
+
+        // WARNING: Di production, pastikan ADMIN_EMAIL & ADMIN_PASSWORD di-set di .env
+        // dengan password yang kuat. Jangan pakai default.
+        if (app()->environment('production') && !env('ADMIN_PASSWORD')) {
+            $this->command?->warn('⚠ ADMIN_PASSWORD belum di-set di .env! Seeder admin di-skip.');
+            return;
+        }
+
         User::updateOrCreate(
-            ['email' => 'admin@local.test'],
+            ['email' => $email],
             [
                 'name' => 'Admin',
-                'password' => Hash::make('admin123'),
+                'password' => Hash::make($password),
                 'is_admin' => true,
             ]
         );

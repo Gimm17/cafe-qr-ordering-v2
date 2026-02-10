@@ -13,7 +13,8 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable;
 
-    protected $fillable = ['name','email','password','is_admin'];
+    protected $fillable = ['name','email','password'];
+    // is_admin dikeluarkan dari $fillable untuk mencegah privilege escalation (F-07)
 
     protected $hidden = ['password','remember_token'];
 
