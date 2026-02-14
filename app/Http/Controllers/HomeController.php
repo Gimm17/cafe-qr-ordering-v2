@@ -12,15 +12,21 @@ class HomeController extends Controller
         $categories = Category::where('is_active', true)
             ->orderBy('sort_order')
             ->get();
-            
+
         $products = Product::where('is_active', true)
             ->with('category')
+            ->withCount('reviews')
+            ->withAvg('reviews', 'rating')
+            ->selectRaw('products.*, (SELECT COALESCE(SUM(oi.qty),0) FROM order_items oi WHERE oi.product_id = products.id) as total_ordered')
             ->orderByDesc('is_best_seller')
             ->limit(8)
             ->get();
-            
+
         $bestSellers = Product::where('is_active', true)
             ->where('is_best_seller', true)
+            ->withCount('reviews')
+            ->withAvg('reviews', 'rating')
+            ->selectRaw('products.*, (SELECT COALESCE(SUM(oi.qty),0) FROM order_items oi WHERE oi.product_id = products.id) as total_ordered')
             ->limit(4)
             ->get();
 
