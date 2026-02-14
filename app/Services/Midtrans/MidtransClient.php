@@ -44,6 +44,12 @@ class MidtransClient
             'callbacks' => [
                 'finish' => route('cafe.order.show', ['order' => $order->order_code]),
             ],
+            'enabled_payments' => [
+                'gopay',
+                'shopeepay',
+                'other_qris',
+                'dana',
+            ],
             'expiry' => [
                 'start_time' => $order->created_at->format('Y-m-d H:i:s O'),
                 'unit'       => 'minutes',
