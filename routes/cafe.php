@@ -8,7 +8,6 @@ use App\Http\Controllers\Cafe\CheckoutController;
 use App\Http\Controllers\Cafe\PaymentController;
 use App\Http\Controllers\Cafe\OrderController;
 use App\Http\Controllers\Cafe\FeedbackController;
-use App\Http\Controllers\Cafe\IpaymuWebhookController;
 
 Route::middleware(['web'])->group(function () {
     // Note: /t/{token} route is defined in web.php to keep QR URLs at root level
@@ -27,7 +26,8 @@ Route::middleware(['web'])->group(function () {
         Route::get('/checkout', [CheckoutController::class, 'index'])->name('cafe.checkout');
         Route::post('/checkout', [CheckoutController::class, 'store'])->name('cafe.checkout.store');
 
-        Route::get('/pay/{order:order_code}', [PaymentController::class, 'redirect'])->name('cafe.pay');
+        Route::get('/pay/{order:order_code}', [PaymentController::class, 'pay'])->name('cafe.pay');
+        Route::post('/pay/{order:order_code}/token', [PaymentController::class, 'getSnapToken'])->name('cafe.pay.token');
 
         Route::get('/order/{order:order_code}', [OrderController::class, 'show'])->name('cafe.order.show');
         Route::get('/order/{order:order_code}/status', [OrderController::class, 'statusJson'])->middleware('throttle:60,1')->name('cafe.order.status');

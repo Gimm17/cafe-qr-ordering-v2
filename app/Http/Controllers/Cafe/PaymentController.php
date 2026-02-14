@@ -5,17 +5,22 @@ namespace App\Http\Controllers\Cafe;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\Payment;
-use App\Services\Ipaymu\IpaymuClient;
+use App\Services\Midtrans\MidtransClient;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class PaymentController extends Controller
 {
-    public function __construct(private IpaymuClient $ipaymu) {}
+    public function __construct(private MidtransClient $midtrans) {}
 
-    public function redirect(Order $order)
+    /**
+     * Show the custom in-app payment page with Midtrans Snap.
+     */
+    public function pay(Order $order)
     {
         if ($order->payment_status === 'PAID') {
-            return redirect()->route('cafe.order.show', ['order' => $order->order_code]);
+            return redirect()->route('cafe.order.show', ['order' => $order->order_code])
+                ->with('success', 'Pesanan sudah dibayar.');
         }
 
         // Check if order is expired (older than 10 minutes)
@@ -25,130 +30,55 @@ class PaymentController extends Controller
                 ->with('error', 'Pesanan telah kadaluarsa. Silakan pesan ulang.');
         }
 
-        // Build payload for Redirect Payment
-        $cfg = config('ipaymu');
-        $va = (string) ($cfg['va'] ?? '');
-        $items = $order->items()->get();
-        
-        // Ensure strictly typed arrays for iPaymu
-        $products = $items->pluck('product_name')->map(fn($v) => (string)$v)->values()->all();
-        $qtys = $items->pluck('qty')->map(fn($v) => (int)$v)->values()->all();
-        // penting: jangan float, bikin encoding beda-beda
-        $prices = $items->pluck('unit_price')->map(fn($v) => (int) round((float) $v))->values()->all();
-        // PENTING: description tidak boleh kosong - gunakan product name sebagai fallback
-        $descriptions = $items->map(fn($item) => (string)($item->note ?: $item->product_name))->values()->all();
-
-        // Generate callback URLs using route() helper (otomatis sinkron dengan route definition)
-        $returnUrl = route('ipaymu.return', ['order_code' => $order->order_code], true);
-        $cancelUrl = route('ipaymu.cancel', ['order_code' => $order->order_code], true);
-        $notifyUrl = route('ipaymu.notify', [], true);
-
-        $payload = [
-            'account' => $va,  // ✅ WAJIB untuk Payment Redirect v2
-            'product' => $products,
-            'qty' => $qtys,
-            'price' => $prices,
-            'description' => $descriptions,
-            'returnUrl' => $returnUrl,
-            'cancelUrl' => $cancelUrl,
-            'notifyUrl' => $notifyUrl,
-            'referenceId' => $order->order_code,
-            'buyerName' => (string)$order->customer_name,
-        ];
-
-        // create payment record
+        // Create or get payment record
         $payment = Payment::firstOrCreate(
             ['order_id' => $order->id],
-            ['gateway' => 'ipaymu', 'status' => 'CREATED']
+            ['gateway' => 'midtrans', 'status' => 'CREATED']
         );
 
-        $res = $this->ipaymu->createRedirectPayment($payload);
-        $body = $res['body'] ?? [];
-        $paymentUrl = $this->ipaymu->parseRedirectUrl($body);
-        $sessionId = $this->ipaymu->parseSessionId($body);
+        // Create Snap token
+        $snap = $this->midtrans->createSnapToken($order);
 
-        $payment->update([
-            'status' => ($paymentUrl ? 'PENDING' : 'FAILED'),
-            'gateway_session_id' => $sessionId,
-            'gateway_url' => $paymentUrl,
-            'raw_response' => $body,
-        ]);
-
-        $order->update(['payment_status' => ($paymentUrl ? 'PENDING' : 'FAILED')]);
-
-        if (!$paymentUrl) {
-            Log::warning('iPaymu redirect payment failed', ['order' => $order->order_code, 'resp' => $res]);
-            $errorMsg = $body['Message'] ?? 'Gagal membuat sesi pembayaran. Silakan coba lagi.';
+        if (!$snap['token']) {
+            Log::warning('Midtrans snap token failed', ['order' => $order->order_code, 'error' => $snap['error'] ?? 'unknown']);
             return redirect()->route('cafe.order.show', ['order' => $order->order_code])
-                ->with('error', 'iPaymu Error: ' . $errorMsg);
+                ->with('error', 'Gagal membuat sesi pembayaran: ' . ($snap['error'] ?? 'Silakan coba lagi.'));
         }
 
-        return redirect()->away($paymentUrl);
+        // Update payment with snap token
+        $payment->update([
+            'status'             => 'PENDING',
+            'gateway_session_id' => $snap['token'],
+            'gateway_url'        => $snap['redirect_url'],
+        ]);
+        $order->update(['payment_status' => 'PENDING']);
+
+        $items = $order->items()->get();
+
+        return view('cafe.pay', [
+            'order'     => $order,
+            'items'     => $items,
+            'snapToken' => $snap['token'],
+            'clientKey' => config('midtrans.client_key'),
+            'snapUrl'   => config('midtrans.snap_url'),
+        ]);
     }
 
-    public function return()
+    /**
+     * AJAX endpoint: get/refresh Snap token for an order.
+     */
+    public function getSnapToken(Order $order)
     {
-        $code = request('order_code');
-        if (!$code) return redirect()->route('cafe.menu');
-
-        // Eager-check: verify payment with iPaymu if webhook hasn't arrived yet
-        $order = Order::where('order_code', $code)->first();
-        if ($order && $order->payment_status !== 'PAID') {
-            $payment = $order->payment;
-
-            // iPaymu returns trx_id in the query string on redirect back
-            $trxId = request('trx_id') ?? ($payment->gateway_trx_id ?? null);
-
-            if ($trxId && $payment) {
-                $isSandbox = config('ipaymu.env') !== 'production';
-
-                if ($isSandbox) {
-                    // In sandbox mode, trust the return redirect
-                    // The webhook should have already processed, but if not, set PAID
-                    $order->update([
-                        'payment_status' => 'PAID',
-                        'order_status' => 'DIPROSES',
-                    ]);
-                    $payment->update([
-                        'status' => 'PAID',
-                        'gateway_trx_id' => $trxId,
-                    ]);
-                    return redirect()->route('cafe.order.show', ['order' => $code])
-                        ->with('success', 'Pembayaran berhasil! Pesanan sedang diproses.');
-                } else {
-                    // Production: verify via checkTransaction API
-                    try {
-                        $res = $this->ipaymu->checkTransaction($trxId);
-                        $body = $res['body'] ?? [];
-                        $apiStatus = (int)($body['Status'] ?? 0);
-                        $txStatusCode = (int)($body['Data']['StatusCode'] ?? -1);
-
-                        if ($apiStatus === 200 && $txStatusCode === 1) {
-                            $order->update([
-                                'payment_status' => 'PAID',
-                                'order_status' => 'DIPROSES',
-                            ]);
-                            $payment->update([
-                                'status' => 'PAID',
-                                'gateway_trx_id' => $trxId,
-                            ]);
-                            return redirect()->route('cafe.order.show', ['order' => $code])
-                                ->with('success', 'Pembayaran berhasil! Pesanan sedang diproses.');
-                        }
-                    } catch (\Throwable $e) {
-                        Log::warning('Eager payment check failed', ['order' => $code, 'error' => $e->getMessage()]);
-                    }
-                }
-            }
+        if ($order->payment_status === 'PAID') {
+            return response()->json(['error' => 'Pesanan sudah dibayar'], 400);
         }
 
-        return redirect()->route('cafe.order.show', ['order' => $code])->with('success', 'Kembali dari pembayaran.');
-    }
+        $snap = $this->midtrans->createSnapToken($order);
 
-    public function cancel()
-    {
-        $code = request('order_code');
-        if (!$code) return redirect()->route('cafe.menu');
-        return redirect()->route('cafe.order.show', ['order' => $code])->with('error', 'Pembayaran dibatalkan.');
+        if (!$snap['token']) {
+            return response()->json(['error' => $snap['error'] ?? 'Gagal membuat token'], 500);
+        }
+
+        return response()->json(['token' => $snap['token']]);
     }
 }

@@ -24,10 +24,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin' => \App\Http\Middleware\EnsureAdmin::class,
         ]);
         
-        // Exclude iPaymu webhook from CSRF verification
+        // Exclude Midtrans webhook from CSRF verification
         $middleware->validateCsrfTokens(except: [
-            'ipaymu/notify',
-            '/ipaymu/notify',
+            'midtrans/notify',
+            '/midtrans/notify',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

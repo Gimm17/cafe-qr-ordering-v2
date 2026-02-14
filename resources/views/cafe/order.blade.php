@@ -38,7 +38,7 @@
                     </div>
 
                     @if($order->created_at->addMinutes(10)->isFuture())
-                    <a href="{{ $order->payment && $order->payment->payment_url ? $order->payment->payment_url : route('cafe.pay', $order) }}" class="mt-3 inline-flex items-center justify-center w-full tap-44 px-5 py-3 bg-primary-600 text-white font-semibold ui-btn hover:bg-primary-700 transition-colors">
+                    <a href="{{ route('cafe.pay', $order->order_code) }}" class="mt-3 inline-flex items-center justify-center w-full tap-44 px-5 py-3 bg-primary-600 text-white font-semibold ui-btn hover:bg-primary-700 transition-colors">
                         💳 Bayar Sekarang
                     </a>
                     @endif
