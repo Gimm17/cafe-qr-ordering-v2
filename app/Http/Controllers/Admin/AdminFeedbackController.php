@@ -9,7 +9,7 @@ class AdminFeedbackController extends Controller
 {
     public function index()
     {
-        $feedback = OrderFeedback::with('order')
+        $feedback = OrderFeedback::with('order', 'product')
             ->latest()
             ->paginate(30);
 

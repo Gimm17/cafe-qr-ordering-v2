@@ -13,33 +13,57 @@ class FeedbackController extends Controller
     {
         // only after SELESAI
         if ($order->order_status !== 'SELESAI') {
-            return back()->with('error', 'Feedback hanya bisa setelah pesanan SELESAI.');
+            return back()->with('error', 'Review hanya bisa setelah pesanan SELESAI.');
         }
 
-        if ($order->feedback) {
-            return back()->with('error', 'Feedback sudah pernah dikirim untuk order ini.');
+        // Check if already reviewed
+        if ($order->feedback()->exists()) {
+            return back()->with('error', 'Kamu sudah pernah memberi review untuk pesanan ini.');
         }
 
         $data = $req->validate([
-            'rating' => ['nullable','integer','min:1','max:5'],
-            'comment' => ['nullable','string','max:700'],
+            'items' => ['required', 'array'],
+            'items.*.rating' => ['nullable', 'integer', 'min:1', 'max:5'],
+            'items.*.comment' => ['nullable', 'string', 'max:500'],
         ]);
 
-        $rating = $data['rating'] ?? null;
-        $comment = isset($data['comment']) ? trim($data['comment']) : null;
+        $items = $data['items'] ?? [];
+        $savedCount = 0;
 
-        if ($rating === null && (!$comment || $comment === '')) {
-            return back()->with('error', 'Isi rating atau komentar (minimal salah satu).');
+        $order->load('items');
+
+        foreach ($items as $orderItemId => $review) {
+            $rating = $review['rating'] ?? null;
+            $comment = isset($review['comment']) ? trim($review['comment']) : null;
+
+            // Skip items without rating AND comment
+            if ($rating === null && (!$comment || $comment === '')) {
+                continue;
+            }
+
+            // Verify the item belongs to this order
+            $orderItem = $order->items->firstWhere('id', $orderItemId);
+            if (!$orderItem) {
+                continue;
+            }
+
+            OrderFeedback::create([
+                'order_id' => $order->id,
+                'product_id' => $orderItem->product_id,
+                'order_item_id' => $orderItem->id,
+                'rating' => $rating,
+                'comment' => $comment ?: null,
+                'status' => 'VISIBLE',
+                'is_flagged' => false,
+            ]);
+
+            $savedCount++;
         }
 
-        OrderFeedback::create([
-            'order_id' => $order->id,
-            'rating' => $rating,
-            'comment' => $comment ?: null,
-            'status' => 'VISIBLE',
-            'is_flagged' => false,
-        ]);
+        if ($savedCount === 0) {
+            return back()->with('error', 'Isi rating atau komentar minimal untuk satu produk.');
+        }
 
-        return back()->with('success', 'Makasih! Masukan kamu sudah terkirim.');
+        return back()->with('success', 'Makasih! Review kamu sudah terkirim. 🎉');
     }
 }

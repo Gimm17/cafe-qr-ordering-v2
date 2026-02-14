@@ -77,11 +77,15 @@ class MenuController extends Controller
         $cafeIsOpen = Setting::isCafeOpen();
         $isCloseOrder = !$cafeIsOpen || ($product->category ? $product->category->isClosedOrder() : false);
 
+        // Load visible reviews for this product (latest 10)
+        $reviews = $product->reviews()->latest()->limit(10)->get();
+
         return view('cafe.product', [
             'product' => $product,
             'tableNo' => session('cafe_table_no'),
             'isCloseOrder' => $isCloseOrder,
             'cafeIsOpen' => $cafeIsOpen,
+            'reviews' => $reviews,
         ]);
     }
 }

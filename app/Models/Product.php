@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Product extends Model
 {
@@ -22,6 +23,27 @@ class Product extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
+    }
+
+    /**
+     * Product reviews from order feedback.
+     */
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(OrderFeedback::class)
+            ->where('status', 'VISIBLE')
+            ->whereNotNull('rating');
+    }
+
+    public function getAverageRatingAttribute(): ?float
+    {
+        $avg = $this->reviews()->avg('rating');
+        return $avg ? round($avg, 1) : null;
+    }
+
+    public function getReviewCountAttribute(): int
+    {
+        return $this->reviews()->count();
     }
 
     public function modGroups(): BelongsToMany

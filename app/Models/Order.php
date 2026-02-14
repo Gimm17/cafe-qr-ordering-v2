@@ -39,6 +39,6 @@ class Order extends Model
 
     public function feedback()
     {
-        return $this->hasOne(OrderFeedback::class);
+        return $this->hasMany(OrderFeedback::class);
     }
 }
