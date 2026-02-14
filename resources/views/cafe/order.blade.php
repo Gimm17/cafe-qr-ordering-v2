@@ -116,72 +116,70 @@
             </div>
         </div>
         <!-- Product Reviews -->
-        @if($order->order_status === 'SELESAI')
-            <div class="ui-card overflow-hidden mb-6">
-                <div class="p-5 border-b ui-divider">
-                    <h2 class="font-semibold tracking-tight">⭐ Beri Review</h2>
-                    <p class="text-sm text-muted">Opsional — beri rating untuk produk yang kamu pesan.</p>
-                </div>
+        <div class="ui-card overflow-hidden mb-6" id="reviewSection" style="{{ $order->order_status !== 'SELESAI' ? 'display:none;' : '' }}">
+            <div class="p-5 border-b ui-divider">
+                <h2 class="font-semibold tracking-tight">⭐ Beri Review</h2>
+                <p class="text-sm text-muted">Opsional — beri rating untuk produk yang kamu pesan.</p>
+            </div>
 
-                @if($order->feedback->isNotEmpty())
-                    {{-- Already reviewed --}}
-                    <div class="divide-y ui-divider">
-                        @foreach($order->items as $item)
-                            @php $review = $order->feedback->firstWhere('order_item_id', $item->id); @endphp
-                            <div class="p-5">
-                                <p class="font-semibold text-gray-900 text-sm">{{ $item->product_name }}</p>
-                                @if($review)
-                                    <div class="flex items-center gap-1 mt-1">
-                                        @for($i=1;$i<=5;$i++)
-                                            <svg class="w-4 h-4 {{ $i <= $review->rating ? 'text-amber-400' : 'text-gray-300' }}" fill="currentColor" viewBox="0 0 20 20">
-                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                                            </svg>
-                                        @endfor
-                                    </div>
-                                    @if($review->comment)
-                                        <p class="mt-1 text-sm text-gray-600 italic">"{{ $review->comment }}"</p>
-                                    @endif
-                                @else
-                                    <p class="text-xs text-gray-400 mt-1">Tidak diberi review</p>
-                                @endif
-                            </div>
-                        @endforeach
-                    </div>
-                    <div class="p-4 bg-green-50 border-t border-green-100 text-center">
-                        <p class="text-sm text-green-700 font-medium">✅ Terima kasih sudah memberi review!</p>
-                    </div>
-                @else
-                    {{-- Review form --}}
-                    <form action="{{ route('cafe.order.feedback', $order) }}" method="POST">
-                        @csrf
-                        <div class="divide-y ui-divider">
-                            @foreach($order->items as $item)
-                            <div class="p-5">
-                                <p class="font-semibold text-gray-900 text-sm mb-2">{{ $item->product_name }}</p>
-                                <div class="flex items-center gap-1 mb-2" id="stars-{{ $item->id }}">
+            @if($order->feedback->isNotEmpty())
+                {{-- Already reviewed --}}
+                <div class="divide-y ui-divider">
+                    @foreach($order->items as $item)
+                        @php $review = $order->feedback->firstWhere('order_item_id', $item->id); @endphp
+                        <div class="p-5">
+                            <p class="font-semibold text-gray-900 text-sm">{{ $item->product_name }}</p>
+                            @if($review)
+                                <div class="flex items-center gap-1 mt-1">
                                     @for($i=1;$i<=5;$i++)
-                                        <label class="cursor-pointer">
-                                            <input type="radio" name="items[{{ $item->id }}][rating]" value="{{ $i }}" class="hidden star-input" data-group="{{ $item->id }}">
-                                            <svg class="w-7 h-7 text-gray-300 hover:text-amber-400 transition-colors star-svg" fill="currentColor" viewBox="0 0 20 20">
-                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                                            </svg>
-                                        </label>
+                                        <svg class="w-4 h-4 {{ $i <= $review->rating ? 'text-amber-400' : 'text-gray-300' }}" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                        </svg>
                                     @endfor
                                 </div>
-                                <textarea name="items[{{ $item->id }}][comment]" rows="1" class="w-full px-3 py-2 bg-white rounded-xl border border-line ui-focus resize-none text-sm" placeholder="Komentar (opsional)"></textarea>
+                                @if($review->comment)
+                                    <p class="mt-1 text-sm text-gray-600 italic">"{{ $review->comment }}"</p>
+                                @endif
+                            @else
+                                <p class="text-xs text-gray-400 mt-1">Tidak diberi review</p>
+                            @endif
+                        </div>
+                    @endforeach
+                </div>
+                <div class="p-4 bg-green-50 border-t border-green-100 text-center">
+                    <p class="text-sm text-green-700 font-medium">✅ Terima kasih sudah memberi review!</p>
+                </div>
+            @else
+                {{-- Review form --}}
+                <form action="{{ route('cafe.order.feedback', $order) }}" method="POST">
+                    @csrf
+                    <div class="divide-y ui-divider">
+                        @foreach($order->items as $item)
+                        <div class="p-5">
+                            <p class="font-semibold text-gray-900 text-sm mb-2">{{ $item->product_name }}</p>
+                            <div class="flex items-center gap-1 mb-2" id="stars-{{ $item->id }}">
+                                @for($i=1;$i<=5;$i++)
+                                    <label class="cursor-pointer">
+                                        <input type="radio" name="items[{{ $item->id }}][rating]" value="{{ $i }}" class="hidden star-input" data-group="{{ $item->id }}">
+                                        <svg class="w-7 h-7 text-gray-300 hover:text-amber-400 transition-colors star-svg" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                        </svg>
+                                    </label>
+                                @endfor
                             </div>
-                            @endforeach
+                            <textarea name="items[{{ $item->id }}][comment]" rows="1" class="w-full px-3 py-2 bg-white rounded-xl border border-line ui-focus resize-none text-sm" placeholder="Komentar (opsional)"></textarea>
                         </div>
-                        <div class="p-5 border-t ui-divider">
-                            <p class="text-xs text-muted mb-3">💡 Tidak wajib — kosongkan saja jika tidak ingin memberi review.</p>
-                            <button type="submit" class="w-full tap-44 py-3 bg-primary-600 text-white font-semibold ui-btn hover:bg-primary-700 transition-colors">
-                                Kirim Review
-                            </button>
-                        </div>
-                    </form>
-                @endif
-            </div>
-        @endif
+                        @endforeach
+                    </div>
+                    <div class="p-5 border-t ui-divider">
+                        <p class="text-xs text-muted mb-3">💡 Tidak wajib — kosongkan saja jika tidak ingin memberi review.</p>
+                        <button type="submit" class="w-full tap-44 py-3 bg-primary-600 text-white font-semibold ui-btn hover:bg-primary-700 transition-colors">
+                            Kirim Review
+                        </button>
+                    </div>
+                </form>
+            @endif
+        </div>
 
         <div class="mb-10">
             <a href="{{ route('cafe.menu') }}" class="w-full inline-flex items-center justify-center tap-44 px-5 py-3 bg-gray-900 text-white font-semibold ui-btn hover:bg-black transition-colors">
@@ -300,6 +298,26 @@
                             confirmButtonColor: '#4F46E5'
                         });
                     }
+
+                    // Check for status change to SELESAI — reveal review form
+                    if (data.order_status === 'SELESAI' && lastStatus !== 'SELESAI') {
+                        const reviewEl = document.getElementById('reviewSection');
+                        if (reviewEl) {
+                            reviewEl.style.display = '';
+                            reviewEl.style.opacity = '0';
+                            reviewEl.style.transform = 'translateY(16px)';
+                            reviewEl.style.transition = 'opacity .5s ease, transform .5s ease';
+                            requestAnimationFrame(() => {
+                                reviewEl.style.opacity = '1';
+                                reviewEl.style.transform = 'translateY(0)';
+                            });
+                            // Re-bind star rating handlers
+                            bindStarRatings();
+                            // Scroll to review section
+                            setTimeout(() => reviewEl.scrollIntoView({ behavior: 'smooth', block: 'center' }), 600);
+                        }
+                    }
+
                     lastStatus = data.order_status;
                 } else {
                     backoff = Math.min(maxBackoff, backoff + 500);
@@ -314,19 +332,22 @@
         // Start polling
         poll();
 
-        // Improve star rating UX (per-item groups)
-        document.querySelectorAll('.star-input').forEach(input => {
-            input.addEventListener('change', () => {
-                const group = input.dataset.group;
-                const val = parseInt(input.value);
-                document.querySelectorAll(`.star-input[data-group="${group}"]`).forEach((r, idx) => {
-                    const svg = r.parentElement.querySelector('.star-svg');
-                    if (!svg) return;
-                    svg.classList.toggle('text-amber-400', idx < val);
-                    svg.classList.toggle('text-gray-300', idx >= val);
+        // Star rating UX — extracted to function so it can be re-bound
+        function bindStarRatings() {
+            document.querySelectorAll('.star-input').forEach(input => {
+                input.addEventListener('change', () => {
+                    const group = input.dataset.group;
+                    const val = parseInt(input.value);
+                    document.querySelectorAll(`.star-input[data-group="${group}"]`).forEach((r, idx) => {
+                        const svg = r.parentElement.querySelector('.star-svg');
+                        if (!svg) return;
+                        svg.classList.toggle('text-amber-400', idx < val);
+                        svg.classList.toggle('text-gray-300', idx >= val);
+                    });
                 });
             });
-        });
+        }
+        bindStarRatings();
     </script>
     </x-slot:scripts>
 </x-cafe-layout>

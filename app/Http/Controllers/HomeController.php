@@ -14,7 +14,9 @@ class HomeController extends Controller
             ->get();
 
         $products = Product::where('is_active', true)
-            ->with('category')
+            ->with(['category', 'reviews' => function($q) {
+                $q->latest()->limit(10);
+            }])
             ->withCount('reviews')
             ->withAvg('reviews', 'rating')
             ->selectRaw('products.*, (SELECT COALESCE(SUM(oi.qty),0) FROM order_items oi WHERE oi.product_id = products.id) as total_ordered')
@@ -24,6 +26,9 @@ class HomeController extends Controller
 
         $bestSellers = Product::where('is_active', true)
             ->where('is_best_seller', true)
+            ->with(['reviews' => function($q) {
+                $q->latest()->limit(10);
+            }])
             ->withCount('reviews')
             ->withAvg('reviews', 'rating')
             ->selectRaw('products.*, (SELECT COALESCE(SUM(oi.qty),0) FROM order_items oi WHERE oi.product_id = products.id) as total_ordered')
