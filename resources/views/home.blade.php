@@ -354,52 +354,35 @@
         </div>
     </div>
 
+    @php
+        $mapProduct = function($p) {
+            return [
+                'id' => $p->id,
+                'name' => $p->name,
+                'price' => $p->price_rupiah,
+                'image' => $p->image_url,
+                'category' => $p->category?->name ?? null,
+                'total_ordered' => $p->total_ordered ?? 0,
+                'avg_rating' => round($p->reviews_avg_rating ?? 0, 1),
+                'reviews_count' => $p->reviews_count ?? 0,
+                'description' => $p->description,
+                'reviews' => $p->reviews->map(function($r) {
+                    return [
+                        'rating' => $r->rating,
+                        'comment' => $r->comment,
+                        'date' => $r->created_at->diffForHumans(),
+                    ];
+                })->values(),
+            ];
+        };
+        $productsJson = $products->map($mapProduct)->keyBy('id');
+        $bestSellersJson = $bestSellers->map($mapProduct)->keyBy('id');
+        $allProductsJson = $bestSellersJson->merge($productsJson);
+    @endphp
+
     <!-- Product data for modal -->
     <script>
-        const productsData = @json($products->map(function($p) {
-            return [
-                'id' => $p->id,
-                'name' => $p->name,
-                'price' => $p->price_rupiah,
-                'image' => $p->image_url,
-                'category' => $p->category?->name,
-                'total_ordered' => $p->total_ordered ?? 0,
-                'avg_rating' => round($p->reviews_avg_rating ?? 0, 1),
-                'reviews_count' => $p->reviews_count ?? 0,
-                'description' => $p->description,
-                'reviews' => $p->reviews->map(function($r) {
-                    return [
-                        'rating' => $r->rating,
-                        'comment' => $r->comment,
-                        'date' => $r->created_at->diffForHumans(),
-                    ];
-                }),
-            ];
-        })->keyBy('id'));
-
-        // Also add bestSellers data (some may overlap with products)
-        const bestSellersData = @json($bestSellers->map(function($p) {
-            return [
-                'id' => $p->id,
-                'name' => $p->name,
-                'price' => $p->price_rupiah,
-                'image' => $p->image_url,
-                'total_ordered' => $p->total_ordered ?? 0,
-                'avg_rating' => round($p->reviews_avg_rating ?? 0, 1),
-                'reviews_count' => $p->reviews_count ?? 0,
-                'description' => $p->description,
-                'reviews' => $p->reviews->map(function($r) {
-                    return [
-                        'rating' => $r->rating,
-                        'comment' => $r->comment,
-                        'date' => $r->created_at->diffForHumans(),
-                    ];
-                }),
-            ];
-        })->keyBy('id'));
-
-        // Merge all product data
-        const allProducts = { ...bestSellersData, ...productsData };
+        const allProducts = {!! json_encode($allProductsJson, JSON_HEX_TAG) !!};
 
         function openModal(productId) {
             const p = allProducts[productId];
