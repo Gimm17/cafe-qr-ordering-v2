@@ -1,14 +1,17 @@
-<x-admin-layout>
-  <div class="flex items-center justify-between">
-    <h1 class="text-xl font-bold mb-4">Reports</h1>
+<x-admin-layout title="Reports">
+  <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-6">
+    <div>
+      <p class="text-sm text-muted">Grafik penjualan (PAID) berdasarkan range.</p>
+    </div>
     <div class="flex gap-2">
-      <a class="px-3 py-2 rounded border {{ $range==='7d'?'bg-gray-900 text-white':'' }}" href="{{ route('admin.reports', ['range'=>'7d']) }}">7d</a>
-      <a class="px-3 py-2 rounded border {{ $range==='30d'?'bg-gray-900 text-white':'' }}" href="{{ route('admin.reports', ['range'=>'30d']) }}">30d</a>
+      <a class="tap-44 px-4 py-2 rounded-xl border border-line font-semibold {{ $range==='7d' ? 'bg-gray-900 text-white' : 'bg-white text-gray-800 hover:bg-gray-50' }}" href="{{ route('admin.reports', ['range'=>'7d']) }}">7d</a>
+      <a class="tap-44 px-4 py-2 rounded-xl border border-line font-semibold {{ $range==='30d' ? 'bg-gray-900 text-white' : 'bg-white text-gray-800 hover:bg-gray-50' }}" href="{{ route('admin.reports', ['range'=>'30d']) }}">30d</a>
     </div>
   </div>
 
-  <div class="rounded-xl bg-white border p-4">
+  <div class="ui-card p-5">
     <canvas id="chart" height="120"></canvas>
+    <p class="text-xs text-muted mt-3">Sumber: transaksi order berstatus PAID.</p>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

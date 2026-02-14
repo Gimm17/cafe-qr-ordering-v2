@@ -1,88 +1,76 @@
-<x-admin-layout>
-  <h1 class="text-xl font-bold mb-4">Tables & QR</h1>
-
-  <form class="rounded-xl bg-white border p-4 mb-4" method="POST" action="{{ route('admin.tables.store') }}">
-    @csrf
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-      <input class="rounded border px-3 py-2" type="number" name="table_no" placeholder="No meja" required>
-      <input class="rounded border px-3 py-2" name="name" placeholder="Nama (opsional)">
-      <button class="rounded bg-gray-900 text-white px-4 py-2 font-semibold">Tambah Meja</button>
+<x-admin-layout title="Meja & QR">
+    <div class="mb-6">
+        <p class="text-sm text-muted">Kelola nomor meja dan QR code untuk akses menu per meja.</p>
     </div>
-  </form>
 
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-    @foreach($tables as $t)
-      @php $token = $t->activeToken(); @endphp
-      <div class="rounded-xl bg-white border shadow-sm overflow-hidden">
-        <!-- QR Card Header -->
-        <div class="bg-gradient-to-r from-primary-600 to-primary-700 text-white px-4 py-3 text-center">
-          <div class="text-lg font-bold">{{ config('app.name', 'Cafe QR') }}</div>
-        </div>
-        
-        <!-- QR Code Area -->
-        <div class="p-6 flex flex-col items-center" id="qr-card-{{ $t->id }}">
-          @if($token)
-            <img class="w-48 h-48 border-4 border-gray-100 rounded-lg shadow-sm" 
-                 src="{{ route('admin.tables.qr', $t) }}" 
-                 alt="QR Meja {{ $t->table_no }}"
-                 id="qr-image-{{ $t->id }}">
-          @else
-            <div class="w-48 h-48 bg-gray-100 rounded-lg flex items-center justify-center">
-              <span class="text-gray-400 text-sm">No QR Token</span>
+    <!-- Add Table -->
+    <div class="ui-card p-5 mb-6">
+        <h2 class="font-semibold tracking-tight mb-4">Tambah meja</h2>
+        <form method="POST" action="{{ route('admin.tables.store') }}" class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            @csrf
+            <input class="tap-44 rounded-2xl border border-line px-4 py-3 bg-white ui-focus" type="number" name="table_no" placeholder="No meja" required>
+            <input class="tap-44 rounded-2xl border border-line px-4 py-3 bg-white ui-focus" name="name" placeholder="Nama (opsional)">
+            <button class="tap-44 rounded-2xl bg-primary-600 hover:bg-primary-700 text-white px-5 py-3 font-semibold transition-colors">Tambah</button>
+        </form>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+        @foreach($tables as $t)
+            @php $token = $t->activeToken(); @endphp
+
+            <div class="ui-card-flat overflow-hidden">
+                <!-- Header -->
+                <div class="px-5 py-4 bg-primary-600 text-white">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <div class="text-sm opacity-90">{{ config('app.name', 'Cafe QR') }}</div>
+                            <div class="text-lg font-extrabold tracking-tight">Meja {{ $t->table_no }}</div>
+                        </div>
+                        <span class="ui-chip px-3 py-1 text-[11px] font-bold text-white/90 bg-white/15 border border-white/20">
+                            {{ $token ? 'Aktif' : 'Belum ada token' }}
+                        </span>
+                    </div>
+                    @if($t->name)
+                        <p class="text-xs opacity-90 mt-1">{{ $t->name }}</p>
+                    @endif
+                </div>
+
+                <!-- QR Area -->
+                <div class="p-5 flex flex-col items-center" id="qr-card-{{ $t->id }}">
+                    @if($token)
+                        <img class="w-48 h-48 bg-white border border-line rounded-2xl shadow-soft" src="{{ route('admin.tables.qr', $t) }}" alt="QR Meja {{ $t->table_no }}" id="qr-image-{{ $t->id }}">
+                        <p class="mt-3 text-xs text-muted text-center">Scan QR untuk pesan. Bisa juga langsung ke kasir.</p>
+                    @else
+                        <div class="w-48 h-48 bg-gray-50 border border-line rounded-2xl flex items-center justify-center">
+                            <span class="text-muted text-sm">No QR Token</span>
+                        </div>
+                    @endif
+                </div>
+
+                @if($token)
+                <!-- Actions -->
+                <div class="p-5 border-t ui-divider bg-primary-50/40">
+                    <div class="text-xs text-muted mb-3 truncate">
+                        <span class="font-semibold">URL:</span>
+                        <span class="font-mono">{{ url('/t/'.$token->token) }}</span>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2 mb-3">
+                        <a href="{{ route('admin.tables.qr.download', ['table' => $t, 'format' => 'png']) }}" class="tap-44 py-2.5 px-3 bg-primary-600 text-white rounded-xl text-sm font-semibold hover:bg-primary-700 transition-colors text-center">
+                            Download PNG
+                        </a>
+                        <a href="{{ route('admin.tables.qr.download', ['table' => $t, 'format' => 'pdf']) }}" class="tap-44 py-2.5 px-3 bg-white border border-line text-gray-800 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-colors text-center">
+                            Download PDF
+                        </a>
+                    </div>
+
+                    <form id="rotate-form-{{ $t->id }}" class="hidden" method="POST" action="{{ route('admin.tables.rotate', $t) }}">@csrf</form>
+                    <button type="button" onclick="confirmRotateToken('rotate-form-{{ $t->id }}', '{{ $t->table_no }}')" class="w-full tap-44 py-3 bg-gray-900 text-white rounded-xl text-sm font-semibold hover:bg-black transition-colors">
+                        Rotate Token
+                    </button>
+                </div>
+                @endif
             </div>
-          @endif
-          
-          <!-- Table Number Badge -->
-          <div class="mt-4 bg-gray-900 text-white px-6 py-2 rounded-full">
-            <span class="text-sm font-medium">MEJA</span>
-            <span class="text-2xl font-bold ml-1">{{ $t->table_no }}</span>
-          </div>
-          
-          @if($t->name)
-            <div class="mt-2 text-sm text-gray-600">{{ $t->name }}</div>
-          @endif
-          
-          <!-- Instruction Message -->
-          <div class="mt-4 text-center text-xs text-gray-500 px-4 leading-relaxed">
-            Silahkan scan QR untuk pesan<br>atau langsung ke kasir
-          </div>
-        </div>
-
-        <!-- Actions -->
-        @if($token)
-        <div class="border-t px-4 py-3 bg-gray-50">
-          <div class="text-xs text-gray-500 mb-2 truncate">
-            <span class="font-medium">URL:</span> 
-            <span class="font-mono">{{ url('/t/'.$token->token) }}</span>
-          </div>
-          
-          <!-- Download Buttons -->
-          <div class="grid grid-cols-2 gap-2 mb-2">
-            <a href="{{ route('admin.tables.qr.download', ['table' => $t, 'format' => 'png']) }}" 
-               class="flex items-center justify-center gap-1 py-2 px-3 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-              </svg>
-              PNG
-            </a>
-            <a href="{{ route('admin.tables.qr.download', ['table' => $t, 'format' => 'pdf']) }}" 
-               class="flex items-center justify-center gap-1 py-2 px-3 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-              </svg>
-              PDF
-            </a>
-          </div>
-          
-          <!-- Rotate Token -->
-          <form id="rotate-form-{{ $t->id }}" class="hidden" method="POST" action="{{ route('admin.tables.rotate', $t) }}">@csrf</form>
-          <button type="button" onclick="confirmRotateToken('rotate-form-{{ $t->id }}', '{{ $t->table_no }}')" 
-                  class="w-full py-2 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors">
-            Rotate Token
-          </button>
-        </div>
-        @endif
-      </div>
-    @endforeach
-  </div>
+        @endforeach
+    </div>
 </x-admin-layout>

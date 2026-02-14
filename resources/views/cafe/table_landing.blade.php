@@ -3,54 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Selamat Datang - Cafe Order</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <title>Nindito - Meja {{ str_pad($tableNo, 2, '0', STR_PAD_LEFT) }}</title>
+
+    @include('partials.brand-head')
+
+    <style>
+        /* subtle background grain */
+        .noise{ background-image: radial-gradient(rgba(4,3,96,.08) 1px, transparent 1px); background-size: 18px 18px; }
+    </style>
 </head>
-<body class="gradient-bg min-h-screen flex flex-col items-center justify-center p-6">
-    <!-- Decorative Elements -->
-    <div class="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-        <div class="absolute top-20 left-10 w-20 h-20 bg-emerald-500/20 rounded-full blur-xl"></div>
-        <div class="absolute bottom-40 right-10 w-32 h-32 bg-purple-500/20 rounded-full blur-xl"></div>
-        <div class="absolute top-1/2 left-1/4 w-24 h-24 bg-blue-500/20 rounded-full blur-xl"></div>
+<body class="bg-bone text-ink min-h-screen">
+
+    <div class="min-h-screen flex items-center justify-center p-6 noise">
+        <div class="w-full max-w-md">
+            <div class="ui-card overflow-hidden">
+                <!-- Hero image -->
+                <div class="relative h-44">
+                    <img src="/assets/brand/hero-front.webp" alt="Nindito" class="absolute inset-0 w-full h-full object-cover" loading="eager">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/65 via-black/30 to-transparent"></div>
+
+                    <div class="absolute top-4 left-4 flex items-center gap-3">
+                        <img src="/assets/brand/logo.webp" alt="Nindito" class="w-12 h-12 rounded-full ring-2 ring-white/50 shadow-soft2" loading="eager">
+                        <div class="text-white leading-tight">
+                            <p class="text-sm font-semibold tracking-tight">Nindito</p>
+                            <p class="text-xs text-white/80">Coffee &amp; Friends</p>
+                        </div>
+                    </div>
+
+                    <div class="absolute bottom-4 left-4">
+                        <span class="inline-flex items-center gap-2 bg-white/15 border border-white/25 text-white px-3 py-1.5 rounded-full text-xs font-semibold backdrop-blur">
+                            <span class="w-2 h-2 rounded-full bg-primary-300"></span>
+                            MEJA {{ str_pad($tableNo, 2, '0', STR_PAD_LEFT) }}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Content -->
+                <div class="p-6">
+                    <h1 class="text-xl font-semibold tracking-tight">Selamat datang 👋</h1>
+                    <p class="mt-1 text-sm text-muted">Pilih menu, kirim pesanan, dan nikmati — semuanya dari HP kamu.</p>
+
+                    <div class="mt-5 grid grid-cols-3 gap-3">
+                        <div class="ui-card-flat p-3 text-center">
+                            <div class="w-10 h-10 mx-auto rounded-2xl bg-primary-50 border border-line flex items-center justify-center">
+                                <svg class="w-5 h-5 text-primary-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                            </div>
+                            <p class="mt-2 text-[11px] font-semibold">Pilih</p>
+                        </div>
+                        <div class="ui-card-flat p-3 text-center">
+                            <div class="w-10 h-10 mx-auto rounded-2xl bg-primary-50 border border-line flex items-center justify-center">
+                                <svg class="w-5 h-5 text-primary-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5"/></svg>
+                            </div>
+                            <p class="mt-2 text-[11px] font-semibold">Keranjang</p>
+                        </div>
+                        <div class="ui-card-flat p-3 text-center">
+                            <div class="w-10 h-10 mx-auto rounded-2xl bg-primary-50 border border-line flex items-center justify-center">
+                                <svg class="w-5 h-5 text-primary-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8V7m0 1v8m0 0v1"/></svg>
+                            </div>
+                            <p class="mt-2 text-[11px] font-semibold">Bayar</p>
+                        </div>
+                    </div>
+
+                    <a href="{{ route('cafe.menu') }}" class="mt-6 ui-btn tap-44 inline-flex w-full items-center justify-center gap-2 bg-primary-600 text-white font-semibold rounded-2xl py-3 shadow-soft hover:bg-primary-700 transition">
+                        Mulai Pesan
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                    </a>
+
+                    <p class="mt-4 text-xs text-muted">Jika nomor meja tidak sesuai, mohon hubungi kasir.</p>
+                </div>
+            </div>
+
+            <p class="mt-6 text-center text-[11px] text-muted">Powered by QR Ordering</p>
+        </div>
     </div>
 
-    <div class="relative z-10 text-center max-w-md mx-auto">
-        <!-- Logo/Icon -->
-        <div class="animate-float mb-8">
-            <div class="w-28 h-28 mx-auto bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-3xl flex items-center justify-center shadow-2xl">
-                <svg class="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-            </div>
-        </div>
-
-        <!-- Welcome Text -->
-        <h1 class="text-3xl font-bold text-white mb-2">Selamat Datang!</h1>
-        <p class="text-gray-400 mb-8">Pesan menu favoritmu dengan mudah</p>
-
-        <!-- Table Badge -->
-        <div class="glass rounded-2xl p-8 mb-8">
-            <p class="text-gray-400 text-sm uppercase tracking-wider mb-3">Nomor Meja</p>
-            <div class="text-7xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">
-                {{ str_pad($tableNo, 2, '0', STR_PAD_LEFT) }}
-            </div>
-            <p class="text-gray-500 text-sm mt-4">Pastikan nomor meja sudah benar</p>
-        </div>
-
-        <!-- CTA Button -->
-        <a href="{{ route('cafe.menu') }}" 
-           class="btn-glow inline-flex items-center justify-center w-full bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-semibold text-lg py-4 px-8 rounded-2xl transition-all duration-300 hover:from-emerald-600 hover:to-emerald-700">
-            <span>Mulai Pesan</span>
-            <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
-            </svg>
-        </a>
-
-        <!-- Footer -->
-        <p class="text-gray-600 text-xs mt-8">
-            Powered by Cafe QR Ordering
-        </p>
-    </div>
 </body>
 </html>

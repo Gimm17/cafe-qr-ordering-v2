@@ -1,176 +1,52 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Riwayat Pesanan - Cafe Order</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-</head>
-<body class="bg-gray-50 min-h-screen">
-    <!-- Table Badge -->
-    @if($tableNo)
-    <div class="fixed top-4 left-1/2 -translate-x-1/2 z-50">
-        <div class="bg-primary-600 text-white px-4 py-2 rounded-full shadow-lg flex items-center gap-2 text-sm font-semibold">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
-            </svg>
-            MEJA {{ $tableNo }}
-        </div>
+<x-cafe-layout :tableNo="$tableNo" title="Riwayat Pesanan - Cafe Order">
+  <div class="max-w-lg mx-auto px-4">
+    <div class="flex items-end justify-between mb-5">
+      <div>
+        <h1 class="text-xl font-bold tracking-tight">Riwayat Pesanan</h1>
+        <p class="text-sm text-muted">Pesanan yang pernah kamu buat di meja ini.</p>
+      </div>
+      <a href="{{ route('cafe.menu') }}" class="text-sm font-semibold text-primary-700 hover:text-primary-800">Ke menu</a>
     </div>
+
+    @if($orders->isEmpty())
+      <div class="ui-card p-8 text-center">
+        <div class="w-20 h-20 mx-auto mb-4 bg-primary-50 rounded-2xl flex items-center justify-center">
+          <svg class="w-10 h-10 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+          </svg>
+        </div>
+        <h2 class="text-lg font-semibold">Belum ada riwayat</h2>
+        <p class="text-sm text-muted mt-1">Mulai pesan dulu, nanti muncul di sini.</p>
+        <a href="{{ route('cafe.menu') }}" class="mt-5 inline-flex items-center justify-center px-5 py-3 bg-primary-600 text-white font-semibold ui-btn hover:bg-primary-700 transition-colors tap-44">
+          Lihat Menu
+          <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+        </a>
+      </div>
+    @else
+      <div class="space-y-3">
+        @foreach($orders as $order)
+          <a href="{{ route('cafe.order.show', $order) }}" class="block ui-card-flat p-4 hover:shadow-soft transition-shadow">
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <p class="font-semibold text-gray-900">{{ $order->order_code }}</p>
+                <p class="text-xs text-muted mt-0.5">{{ $order->created_at->format('d M Y, H:i') }}</p>
+              </div>
+              <span class="ui-chip px-3 py-1 text-[11px] font-bold
+                {{ $order->order_status === 'DITERIMA' ? 'text-primary-800' : '' }}
+                {{ $order->order_status === 'DIPROSES' ? 'text-amber-700' : '' }}
+                {{ $order->order_status === 'READY' ? 'text-green-700' : '' }}
+                {{ $order->order_status === 'SELESAI' ? 'text-gray-700' : '' }}">
+                {{ $order->order_status }}
+              </span>
+            </div>
+
+            <div class="mt-3 flex items-center justify-between">
+              <span class="text-sm text-muted">{{ $order->payment_status === 'PAID' ? '✓ Paid' : 'Unpaid' }}</span>
+              <span class="font-extrabold text-primary-700">Rp {{ number_format($order->grand_total, 0, ',', '.') }}</span>
+            </div>
+          </a>
+        @endforeach
+      </div>
     @endif
-
-    <main class="max-w-lg mx-auto px-4 py-20">
-        <!-- Header -->
-        <div class="flex items-center justify-between mb-6">
-            <a href="{{ route('cafe.menu') }}" class="flex items-center gap-2 text-gray-600 hover:text-gray-800">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-                </svg>
-                <span>Kembali ke Menu</span>
-            </a>
-        </div>
-
-        <div class="text-center mb-8">
-            <h1 class="text-2xl font-bold text-gray-800">Riwayat Pesanan</h1>
-            <p class="text-gray-500 text-sm mt-1">24 jam terakhir</p>
-        </div>
-
-        <!-- Flash Messages -->
-        @if(session('error'))
-        <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
-            {{ session('error') }}
-        </div>
-        @endif
-
-        @if(session('success'))
-        <div class="mb-4 p-4 bg-green-50 border border-green-200 rounded-xl text-green-700 text-sm">
-            {{ session('success') }}
-        </div>
-        @endif
-
-        <!-- Orders List -->
-        @if($orders->isEmpty())
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center">
-            <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                </svg>
-            </div>
-            <p class="text-gray-500">Belum ada pesanan</p>
-            <a href="{{ route('cafe.menu') }}" class="mt-4 inline-block px-6 py-2 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition-colors">
-                Pesan Sekarang
-            </a>
-        </div>
-        @else
-        <div class="space-y-4">
-            @foreach($orders as $order)
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                <!-- Order Header -->
-                <div class="p-4 border-b border-gray-100">
-                    <div class="flex items-start justify-between">
-                        <div>
-                            <h3 class="font-bold text-gray-800">{{ $order->order_code }}</h3>
-                            <p class="text-xs text-gray-500">{{ $order->created_at->format('d M Y, H:i') }}</p>
-                            @if($order->payment_status !== 'PAID' && $order->created_at->diffInMinutes(now()) < 10)
-                            <div class="text-xs text-amber-600 font-medium mt-1 countdown-timer" data-expires="{{ $order->created_at->addMinutes(10)->toISOString() }}">
-                                Sisa waktu: <span class="timer-display font-bold">--:--</span>
-                            </div>
-                            @endif
-                        </div>
-                        <div class="flex flex-col items-end gap-1">
-                            <!-- Payment Status Badge -->
-                            <!-- Payment Status Badge -->
-                            @if($order->payment_status === 'PAID')
-                            <span class="px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">✓ Paid</span>
-                            @elseif($order->payment_status === 'EXPIRED' || $order->created_at->diffInMinutes(now()) >= 10)
-                            <span class="px-2 py-1 bg-red-100 text-red-700 text-xs font-medium rounded-full">Expired</span>
-                            @else
-                            <span class="px-2 py-1 bg-amber-100 text-amber-700 text-xs font-medium rounded-full">Unpaid</span>
-                            @endif
-                            <!-- Order Status Badge -->
-                            <span class="px-2 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-full">{{ $order->order_status }}</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Order Items -->
-                <div class="p-4 bg-gray-50">
-                    @foreach($order->items as $item)
-                    <div class="flex justify-between items-center text-sm {{ !$loop->last ? 'mb-2' : '' }}">
-                        <span class="text-gray-700">{{ $item->product_name }} x{{ $item->qty }}</span>
-                        <span class="text-gray-500">Rp {{ number_format($item->subtotal, 0, ',', '.') }}</span>
-                    </div>
-                    @endforeach
-                </div>
-
-                <!-- Order Total & Actions -->
-                <div class="p-4 border-t border-gray-100">
-                    <div class="flex justify-between items-center mb-3">
-                        <span class="text-gray-600">Total</span>
-                        <span class="text-lg font-bold text-primary-600">Rp {{ number_format($order->grand_total, 0, ',', '.') }}</span>
-                    </div>
-
-                    <div class="flex gap-2">
-                        <!-- View Detail -->
-                        <a href="{{ route('cafe.order.show', $order) }}" class="flex-1 py-2 text-center bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors">
-                            Lihat Detail
-                        </a>
-
-                        @if($order->payment_status !== 'PAID' && $order->payment_status !== 'EXPIRED' && $order->created_at->diffInMinutes(now()) < 10)
-                        <!-- Pay Button -->
-                        <a href="{{ route('cafe.pay', $order) }}" class="flex-1 py-2 text-center bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors">
-                            Bayar
-                        </a>
-
-                        <!-- Cancel Button -->
-                        <form action="{{ route('cafe.order.cancel', $order) }}" method="POST" onsubmit="return confirm('Yakin ingin membatalkan pesanan ini?')">
-                            @csrf
-                            <button type="submit" class="px-4 py-2 bg-red-100 text-red-600 rounded-lg text-sm font-medium hover:bg-red-200 transition-colors">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                </svg>
-                            </button>
-                        </form>
-                        @endif
-                    </div>
-                </div>
-            </div>
-            @endforeach
-        </div>
-        @endif
-    </main>
-
-    <script>
-        function updateTimers() {
-            document.querySelectorAll('.countdown-timer').forEach(el => {
-                const expires = new Date(el.dataset.expires).getTime();
-                const now = new Date().getTime();
-                const distance = expires - now;
-
-                if (distance < 0) {
-                    el.innerHTML = '<span class="text-red-500 font-bold">Expired</span>';
-                    // Optional: reload page specifically if needed, but avoid infinite reload loops
-                    return;
-                }
-
-                // Kalkulasi waktu
-                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-                const display = el.querySelector('.timer-display');
-                if (display) {
-                    display.innerText = 
-                        (minutes < 10 ? '0' : '') + minutes + ':' + 
-                        (seconds < 10 ? '0' : '') + seconds;
-                }
-            });
-        }
-        
-        // Update setiap detik
-        setInterval(updateTimers, 1000);
-        // Jalankan sekali saat load
-        updateTimers();
-    </script>
-</body>
-</html>
+  </div>
+</x-cafe-layout>
