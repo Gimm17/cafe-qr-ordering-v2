@@ -377,7 +377,7 @@
         };
         $productsJson = $products->map($mapProduct)->keyBy('id');
         $bestSellersJson = $bestSellers->map($mapProduct)->keyBy('id');
-        $allProductsJson = $bestSellersJson->merge($productsJson);
+        $allProductsJson = $productsJson->union($bestSellersJson);
     @endphp
 
     <!-- Product data for modal -->
