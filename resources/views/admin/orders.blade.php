@@ -167,5 +167,66 @@
         }
         setInterval(updateTimers, 1000);
         updateTimers();
+
+        // ── Auto-refresh: poll every 15 seconds ──
+        let lastOrderCount = {{ $orders->count() }};
+        const REFRESH_INTERVAL = 15000;
+
+        async function autoRefreshOrders() {
+            if (document.hidden) return; // skip when tab not visible
+
+            try {
+                const res = await fetch(window.location.href, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                if (!res.ok) return;
+
+                const html = await res.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+
+                // Replace kanban board content
+                const newBoard = doc.querySelector('.grid.grid-cols-1.md\\:grid-cols-2');
+                const oldBoard = document.querySelector('.grid.grid-cols-1.md\\:grid-cols-2');
+                if (newBoard && oldBoard) {
+                    oldBoard.innerHTML = newBoard.innerHTML;
+                    // Re-attach timer updates
+                    updateTimers();
+                }
+
+                // Check for new orders and notify
+                const newCountEls = doc.querySelectorAll('[data-step]');
+                // Simple: count all order cards in the new HTML
+                const newCards = doc.querySelectorAll('.ui-card-flat[onclick]');
+                if (newCards.length > lastOrderCount) {
+                    const diff = newCards.length - lastOrderCount;
+                    // Show browser notification
+                    if (Notification.permission === 'granted') {
+                        new Notification('🔔 Pesanan Baru!', {
+                            body: `${diff} pesanan baru masuk`,
+                            icon: '/assets/brand/logo.png'
+                        });
+                    }
+                    // Play notification sound
+                    try {
+                        const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbsGckGFqIw+DfuHEoJUyAvN3nxII5MWCE0O/dq1s3OHaV3/DexnlHOm+L0/Hhz5NbR2yFyerhz5leUHGLz/Dlz5tmWXiOz/Dlz5tm');
+                        audio.volume = 0.3;
+                        audio.play().catch(() => {});
+                    } catch(e) {}
+                }
+                lastOrderCount = newCards.length;
+
+            } catch (e) {
+                console.warn('Auto-refresh failed:', e);
+            }
+        }
+
+        setInterval(autoRefreshOrders, REFRESH_INTERVAL);
+
+        // Request notification permission
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
     </script>
 </x-admin-layout>
+

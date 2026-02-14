@@ -25,7 +25,7 @@
 
             @if($order->payment_status !== 'PAID')
                 @php $expiresAt = $order->created_at->addMinutes(10); @endphp
-                <div class="mt-4 ui-card-flat p-4 border border-amber-200 bg-amber-50">
+                <div class="mt-4 ui-card-flat p-4 border border-amber-200 bg-amber-50" id="unpaidWarning">
                     <div class="flex items-start justify-between gap-3">
                         <div>
                             <p class="font-semibold text-amber-800">Menunggu pembayaran</p>
@@ -37,9 +37,9 @@
                         </div>
                     </div>
 
-                    @if($order->payment && $order->payment->payment_url)
-                    <a href="{{ $order->payment->payment_url }}" class="mt-3 inline-flex items-center justify-center w-full tap-44 px-5 py-3 bg-primary-600 text-white font-semibold ui-btn hover:bg-primary-700 transition-colors">
-                        Bayar Sekarang
+                    @if($order->created_at->addMinutes(10)->isFuture())
+                    <a href="{{ $order->payment && $order->payment->payment_url ? $order->payment->payment_url : route('cafe.pay', $order) }}" class="mt-3 inline-flex items-center justify-center w-full tap-44 px-5 py-3 bg-primary-600 text-white font-semibold ui-btn hover:bg-primary-700 transition-colors">
+                        💳 Bayar Sekarang
                     </a>
                     @endif
                 </div>
@@ -226,6 +226,9 @@
             if (paymentStatus === 'PAID') {
                 el.textContent = '✓ Paid';
                 el.className = 'font-bold text-green-700';
+                // Hide the unpaid warning box
+                const unpaidBox = document.getElementById('unpaidWarning');
+                if (unpaidBox) unpaidBox.style.display = 'none';
             } else {
                 el.textContent = 'Unpaid';
                 el.className = 'font-bold text-red-700';

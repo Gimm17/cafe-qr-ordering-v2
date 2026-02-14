@@ -90,6 +90,33 @@ class PaymentController extends Controller
     {
         $code = request('order_code');
         if (!$code) return redirect()->route('cafe.menu');
+
+        // Eager-check: verify payment with iPaymu if webhook hasn't arrived yet
+        $order = Order::where('order_code', $code)->first();
+        if ($order && $order->payment_status !== 'PAID') {
+            $payment = $order->payment;
+            if ($payment && $payment->gateway_trx_id) {
+                try {
+                    $res = $this->ipaymu->checkTransaction($payment->gateway_trx_id);
+                    $body = $res['body'] ?? [];
+                    $apiStatus = (int)($body['Status'] ?? 0);
+                    $txStatusCode = (int)($body['Data']['StatusCode'] ?? -1);
+
+                    if ($apiStatus === 200 && $txStatusCode === 1) {
+                        $order->update([
+                            'payment_status' => 'PAID',
+                            'order_status' => 'DIPROSES',
+                        ]);
+                        $payment->update(['status' => 'PAID']);
+                        return redirect()->route('cafe.order.show', ['order' => $code])
+                            ->with('success', 'Pembayaran berhasil! Pesanan sedang diproses.');
+                    }
+                } catch (\Throwable $e) {
+                    Log::warning('Eager payment check failed', ['order' => $code, 'error' => $e->getMessage()]);
+                }
+            }
+        }
+
         return redirect()->route('cafe.order.show', ['order' => $code])->with('success', 'Kembali dari pembayaran.');
     }
 
