@@ -36,29 +36,33 @@ class PaymentController extends Controller
             ['gateway' => 'midtrans', 'status' => 'CREATED']
         );
 
-        // Create Snap token
-        $snap = $this->midtrans->createSnapToken($order);
+        // Reuse existing Snap token if already created
+        $snapToken = $payment->gateway_session_id;
 
-        if (!$snap['token']) {
-            Log::warning('Midtrans snap token failed', ['order' => $order->order_code, 'error' => $snap['error'] ?? 'unknown']);
-            return redirect()->route('cafe.order.show', ['order' => $order->order_code])
-                ->with('error', 'Gagal membuat sesi pembayaran: ' . ($snap['error'] ?? 'Silakan coba lagi.'));
+        if (!$snapToken) {
+            $snap = $this->midtrans->createSnapToken($order);
+
+            if (!$snap['token']) {
+                Log::warning('Midtrans snap token failed', ['order' => $order->order_code, 'error' => $snap['error'] ?? 'unknown']);
+                return redirect()->route('cafe.order.show', ['order' => $order->order_code])
+                    ->with('error', 'Gagal membuat sesi pembayaran: ' . ($snap['error'] ?? 'Silakan coba lagi.'));
+            }
+
+            $snapToken = $snap['token'];
+            $payment->update([
+                'status'             => 'PENDING',
+                'gateway_session_id' => $snapToken,
+                'gateway_url'        => $snap['redirect_url'] ?? null,
+            ]);
+            $order->update(['payment_status' => 'PENDING']);
         }
-
-        // Update payment with snap token
-        $payment->update([
-            'status'             => 'PENDING',
-            'gateway_session_id' => $snap['token'],
-            'gateway_url'        => $snap['redirect_url'],
-        ]);
-        $order->update(['payment_status' => 'PENDING']);
 
         $items = $order->items()->get();
 
         return view('cafe.pay', [
             'order'     => $order,
             'items'     => $items,
-            'snapToken' => $snap['token'],
+            'snapToken' => $snapToken,
             'clientKey' => config('midtrans.client_key'),
             'snapUrl'   => config('midtrans.snap_url'),
         ]);
