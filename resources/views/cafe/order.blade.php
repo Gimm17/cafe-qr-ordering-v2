@@ -166,6 +166,9 @@
 
     <x-slot:scripts>
     <script>
+        // Notification sound
+        const notificationSound = new Audio("{{ file_exists(public_path('custom_notification.mp3')) ? asset('custom_notification.mp3') : 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbsGckGFqIw+DfuHEoJUyAvN3nxII5MWCE0O/dq1s3OHaV3/DexnlHOm+L0/Hhz5NbR2yFyerhz5leUHGLz/Dlz5tmWXiOz/Dlz5tm' }}");
+
         // Countdown for unpaid order (10 minutes)
         const expiresAt = {{ $order->payment_status !== 'PAID' ? $order->created_at->addMinutes(10)->timestamp * 1000 : 'null' }};
         const countdownEl = document.getElementById('countdown');
@@ -190,6 +193,7 @@
         let etag = null;
         let backoff = 1000;
         const maxBackoff = 8000;
+        let lastStatus = '{{ $order->status }}';
 
         function setText(id, text) {
             const el = document.getElementById(id);
@@ -254,6 +258,22 @@
                     refreshProgress(data.order_status);
                     refreshPayment(data.payment_status);
                     backoff = 1000;
+
+                    // Check for status change to READY
+                    if (data.order_status === 'READY' && lastStatus !== 'READY' && lastStatus !== null) {
+                        // Play sound
+                        notificationSound.play().catch(() => {});
+                        // Vibrate
+                        if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+                        // Show alert
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Pesanan Ready!',
+                            text: 'Pesanan Anda sudah siap! Silakan ambil di kasir.',
+                            confirmButtonColor: '#4F46E5'
+                        });
+                    }
+                    lastStatus = data.order_status;
                 } else {
                     backoff = Math.min(maxBackoff, backoff + 500);
                 }

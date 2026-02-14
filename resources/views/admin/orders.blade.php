@@ -209,9 +209,15 @@
                     }
                     // Play notification sound
                     try {
-                        const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbsGckGFqIw+DfuHEoJUyAvN3nxII5MWCE0O/dq1s3OHaV3/DexnlHOm+L0/Hhz5NbR2yFyerhz5leUHGLz/Dlz5tmWXiOz/Dlz5tm');
-                        audio.volume = 0.3;
-                        audio.play().catch(() => {});
+                        @php
+                            $customPath = public_path('custom_notification.mp3');
+                            $soundSrc = file_exists($customPath)
+                                ? asset('custom_notification.mp3')
+                                : 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbsGckGFqIw+DfuHEoJUyAvN3nxII5MWCE0O/dq1s3OHaV3/DexnlHOm+L0/Hhz5NbR2yFyerhz5leUHGLz/Dlz5tmWXiOz/Dlz5tm';
+                        @endphp
+                        const audio = new Audio("{!! $soundSrc !!}");
+                        audio.volume = 0.5;
+                        audio.play().catch(e => console.log('Audio play failed:', e));
                     } catch(e) {}
                 }
                 lastOrderCount = newCards.length;

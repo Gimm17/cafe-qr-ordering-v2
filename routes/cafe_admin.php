@@ -64,5 +64,9 @@ Route::prefix('admin')->group(function () {
 
         // Reports
         Route::get('/reports', [AdminReportController::class, 'index'])->name('admin.reports');
+
+        // Settings
+        Route::get('/settings', [\App\Http\Controllers\Admin\AdminSettingController::class, 'index'])->name('admin.settings');
+        Route::post('/settings', [\App\Http\Controllers\Admin\AdminSettingController::class, 'update'])->name('admin.settings.update');
     });
 });
