@@ -95,24 +95,49 @@ class PaymentController extends Controller
         $order = Order::where('order_code', $code)->first();
         if ($order && $order->payment_status !== 'PAID') {
             $payment = $order->payment;
-            if ($payment && $payment->gateway_trx_id) {
-                try {
-                    $res = $this->ipaymu->checkTransaction($payment->gateway_trx_id);
-                    $body = $res['body'] ?? [];
-                    $apiStatus = (int)($body['Status'] ?? 0);
-                    $txStatusCode = (int)($body['Data']['StatusCode'] ?? -1);
 
-                    if ($apiStatus === 200 && $txStatusCode === 1) {
-                        $order->update([
-                            'payment_status' => 'PAID',
-                            'order_status' => 'DIPROSES',
-                        ]);
-                        $payment->update(['status' => 'PAID']);
-                        return redirect()->route('cafe.order.show', ['order' => $code])
-                            ->with('success', 'Pembayaran berhasil! Pesanan sedang diproses.');
+            // iPaymu returns trx_id in the query string on redirect back
+            $trxId = request('trx_id') ?? ($payment->gateway_trx_id ?? null);
+
+            if ($trxId && $payment) {
+                $isSandbox = config('ipaymu.env') !== 'production';
+
+                if ($isSandbox) {
+                    // In sandbox mode, trust the return redirect
+                    // The webhook should have already processed, but if not, set PAID
+                    $order->update([
+                        'payment_status' => 'PAID',
+                        'order_status' => 'DIPROSES',
+                    ]);
+                    $payment->update([
+                        'status' => 'PAID',
+                        'gateway_trx_id' => $trxId,
+                    ]);
+                    return redirect()->route('cafe.order.show', ['order' => $code])
+                        ->with('success', 'Pembayaran berhasil! Pesanan sedang diproses.');
+                } else {
+                    // Production: verify via checkTransaction API
+                    try {
+                        $res = $this->ipaymu->checkTransaction($trxId);
+                        $body = $res['body'] ?? [];
+                        $apiStatus = (int)($body['Status'] ?? 0);
+                        $txStatusCode = (int)($body['Data']['StatusCode'] ?? -1);
+
+                        if ($apiStatus === 200 && $txStatusCode === 1) {
+                            $order->update([
+                                'payment_status' => 'PAID',
+                                'order_status' => 'DIPROSES',
+                            ]);
+                            $payment->update([
+                                'status' => 'PAID',
+                                'gateway_trx_id' => $trxId,
+                            ]);
+                            return redirect()->route('cafe.order.show', ['order' => $code])
+                                ->with('success', 'Pembayaran berhasil! Pesanan sedang diproses.');
+                        }
+                    } catch (\Throwable $e) {
+                        Log::warning('Eager payment check failed', ['order' => $code, 'error' => $e->getMessage()]);
                     }
-                } catch (\Throwable $e) {
-                    Log::warning('Eager payment check failed', ['order' => $code, 'error' => $e->getMessage()]);
                 }
             }
         }

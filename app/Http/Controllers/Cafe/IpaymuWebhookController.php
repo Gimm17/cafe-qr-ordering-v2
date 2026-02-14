@@ -68,8 +68,11 @@ class IpaymuWebhookController extends Controller
 
         // Map statuses
         if ($statusCode === '1' || $status === 'berhasil' || $status === 'success') {
+            $isSandbox = config('ipaymu.env') !== 'production';
+
             // F-03: Server-to-server verification before setting PAID
-            if ($trxId) {
+            // In sandbox mode, skip verification (sandbox checkTransaction API is unreliable)
+            if ($trxId && !$isSandbox) {
                 $verified = $this->verifyTransaction($trxId);
                 if (!$verified) {
                     Log::warning('iPaymu notify verification FAILED', [
@@ -79,6 +82,13 @@ class IpaymuWebhookController extends Controller
                     return response('verification failed', 200);
                 }
                 // Mark event as valid after successful verification
+                $event->update(['is_valid' => true]);
+            } elseif ($isSandbox) {
+                // Sandbox: trust webhook payload directly
+                Log::info('iPaymu sandbox: skipping verification, trusting webhook', [
+                    'order' => $reference,
+                    'trx_id' => $trxId,
+                ]);
                 $event->update(['is_valid' => true]);
             } else {
                 Log::warning('iPaymu notify success but no trx_id for verification', [
