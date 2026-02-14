@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
@@ -23,18 +24,18 @@ class AdminSettingController extends Controller
             'hasCustom' => $hasCustom,
             'soundUrl' => $hasCustom ? asset('custom_notification.mp3') : asset('assets/audio/default.mp3'),
             'categories' => $categories,
+            'cafeIsOpen' => Setting::isCafeOpen(),
         ]);
     }
 
     public function update(Request $request)
     {
         $request->validate([
-            'notification_sound' => 'required|file|mimes:mp3,wav|max:2048', // Max 2MB
+            'notification_sound' => 'required|file|mimes:mp3,wav|max:2048',
         ]);
 
         if ($request->hasFile('notification_sound')) {
             $file = $request->file('notification_sound');
-            // Save directly to public folder as custom_notification.mp3
             $file->move(public_path(), 'custom_notification.mp3');
             
             return back()->with('success', 'Suara notifikasi berhasil diperbarui!');
@@ -62,5 +63,17 @@ class AdminSettingController extends Controller
         Cache::forget('menu_categories');
 
         return back()->with('success', 'Pengaturan close order berhasil disimpan!');
+    }
+
+    public function toggleCafe(Request $request)
+    {
+        $currentStatus = Setting::isCafeOpen();
+        Setting::setValue('cafe_is_open', $currentStatus ? '0' : '1');
+
+        // Clear menu cache
+        Cache::forget('menu_categories');
+
+        $statusText = $currentStatus ? 'DITUTUP' : 'DIBUKA';
+        return back()->with('success', "Cafe berhasil {$statusText}!");
     }
 }

@@ -46,7 +46,11 @@
 
         @if($isCloseOrder)
         <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-2xl text-red-700 text-sm flex items-center gap-2">
-            🚫 <strong>Menu ini sudah Close Order.</strong> Tidak bisa ditambahkan ke keranjang.
+            @if(!$cafeIsOpen)
+                🔴 <strong>Cafe sedang tutup.</strong> Tidak bisa memesan saat ini.
+            @else
+                🚫 <strong>Menu ini sudah Close Order.</strong> Tidak bisa ditambahkan ke keranjang.
+            @endif
         </div>
         @endif
 

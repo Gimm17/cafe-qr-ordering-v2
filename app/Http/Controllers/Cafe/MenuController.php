@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Cafe;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
@@ -14,6 +15,8 @@ class MenuController extends Controller
     {
         $search = $request->get('search');
         $categoryId = $request->get('category');
+
+        $cafeIsOpen = Setting::isCafeOpen();
         
         // Cache categories for 60 seconds (they rarely change)
         $categories = Cache::remember('menu_categories', 60, function () {
@@ -23,7 +26,10 @@ class MenuController extends Controller
         });
 
         // Get IDs of categories currently closed for ordering
-        $closedCategoryIds = $categories->filter(fn ($cat) => $cat->isClosedOrder())->pluck('id')->toArray();
+        // If cafe is globally closed, ALL categories are closed
+        $closedCategoryIds = $cafeIsOpen
+            ? $categories->filter(fn ($cat) => $cat->isClosedOrder())->pluck('id')->toArray()
+            : $categories->pluck('id')->toArray();
 
         $productsQuery = Product::where('is_active', true)
             ->with('category')
@@ -54,6 +60,7 @@ class MenuController extends Controller
             'search' => $search,
             'selectedCategory' => $categoryId,
             'closedCategoryIds' => $closedCategoryIds,
+            'cafeIsOpen' => $cafeIsOpen,
         ]);
     }
 
@@ -67,12 +74,14 @@ class MenuController extends Controller
               ->orderBy('product_mod_groups.sort_order');
         }, 'modGroups.activeOptions', 'category']);
 
-        $isCloseOrder = $product->category ? $product->category->isClosedOrder() : false;
+        $cafeIsOpen = Setting::isCafeOpen();
+        $isCloseOrder = !$cafeIsOpen || ($product->category ? $product->category->isClosedOrder() : false);
 
         return view('cafe.product', [
             'product' => $product,
             'tableNo' => session('cafe_table_no'),
             'isCloseOrder' => $isCloseOrder,
+            'cafeIsOpen' => $cafeIsOpen,
         ]);
     }
 }

@@ -1,5 +1,13 @@
 <x-cafe-layout :tableNo="$tableNo" title="Menu - Cafe Order">
     <div class="max-w-lg mx-auto px-4">
+        @if(!$cafeIsOpen)
+        <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-2xl text-center">
+            <span class="text-2xl">🔴</span>
+            <p class="font-bold text-red-800 text-lg mt-1">Cafe Sedang Tutup</p>
+            <p class="text-sm text-red-600">Maaf, saat ini cafe belum buka atau sudah tutup. Silakan kembali lagi nanti.</p>
+        </div>
+        @endif
+
         <!-- Search Bar -->
         <div class="mb-6">
             <form action="{{ route('cafe.menu') }}" method="GET" class="relative">

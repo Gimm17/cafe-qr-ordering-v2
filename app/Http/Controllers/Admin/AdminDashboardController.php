@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\Setting;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
@@ -49,6 +50,7 @@ class AdminDashboardController extends Controller
             'totalProducts' => $stats['totalProducts'],
             'recentOrders' => $recentOrders,
             'topProducts' => $topProducts,
+            'cafeIsOpen' => Setting::isCafeOpen(),
         ]);
     }
 }

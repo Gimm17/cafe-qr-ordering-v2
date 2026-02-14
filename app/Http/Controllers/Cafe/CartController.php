@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Cafe;
 
 use App\Http\Controllers\Controller;
 use App\Models\Product;
+use App\Models\Setting;
 use App\Services\CartService;
 use Illuminate\Http\Request;
 
@@ -31,6 +32,12 @@ class CartController extends Controller
         ]);
 
         $product = Product::with('category')->findOrFail($data['product_id']);
+
+        // Check if cafe is globally closed
+        if (!Setting::isCafeOpen()) {
+            return back()->with('error', 'Cafe sedang tutup.');
+        }
+
         if ($product->is_sold_out || !$product->is_active) {
             return back()->with('error', 'Menu sedang tidak tersedia.');
         }

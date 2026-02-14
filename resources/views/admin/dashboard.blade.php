@@ -1,4 +1,27 @@
 <x-admin-layout title="Dashboard">
+    {{-- Cafe Open/Close Toggle --}}
+    <div class="mb-6">
+        <div class="ui-card-flat p-4 flex items-center justify-between gap-4 {{ $cafeIsOpen ? 'border-l-4 border-green-500' : 'border-l-4 border-red-500' }}">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-2xl {{ $cafeIsOpen ? 'bg-green-50' : 'bg-red-50' }} flex items-center justify-center">
+                    <span class="text-2xl">{{ $cafeIsOpen ? '🟢' : '🔴' }}</span>
+                </div>
+                <div>
+                    <p class="font-bold text-gray-900 text-lg">Cafe {{ $cafeIsOpen ? 'BUKA' : 'TUTUP' }}</p>
+                    <p class="text-xs text-muted">{{ $cafeIsOpen ? 'Pelanggan bisa memesan saat ini' : 'Semua pesanan diblokir' }}</p>
+                </div>
+            </div>
+            <form method="POST" action="{{ route('admin.settings.toggle-cafe') }}">
+                @csrf
+                <button type="submit"
+                    class="tap-44 px-6 py-3 rounded-2xl font-bold text-sm transition-colors {{ $cafeIsOpen ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-green-600 hover:bg-green-700 text-white' }}"
+                    onclick="return confirm('{{ $cafeIsOpen ? 'Tutup cafe sekarang?' : 'Buka cafe sekarang?' }}')">
+                    {{ $cafeIsOpen ? '🔒 Tutup Cafe' : '🔓 Buka Cafe' }}
+                </button>
+            </form>
+        </div>
+    </div>
+
     <!-- KPI Cards (compact & mobile-first) -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5 mb-6">
         <div class="ui-card-flat p-4">

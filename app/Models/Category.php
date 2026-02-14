@@ -22,11 +22,15 @@ class Category extends Model
     /**
      * Check if this category is currently closed for ordering.
      *
-     * Logic: if close_order_time is null, always open.
-     * If close_order_time is between 00:00-05:59, it means the cafe
-     * operates past midnight (e.g., coffee until 02:00 AM).
-     * In that case, the category is closed when now >= close_order_time AND now < 06:00.
-     * For normal hours (06:00-23:59), closed when now >= close_order_time.
+     * Simple logic:
+     * - If cafe is globally closed → always closed (checked externally)
+     * - If close_order_time is null → always open
+     * - If close_order_time is set → closed when current time is past close_order_time
+     *   and before cafe opening time (10:00)
+     *
+     * The "day" runs from 10:00 to 09:59 next day.
+     * Example: close_order_time = 22:30 → closed from 22:30 until 10:00 next morning
+     * Example: close_order_time = 02:00 → closed from 02:00 until 10:00 next morning
      */
     public function isClosedOrder(): bool
     {
@@ -38,37 +42,33 @@ class Category extends Model
         $nowTime = $now->format('H:i:s');
         $closeTime = $this->close_order_time;
 
-        // Normalize close_order_time to H:i:s format
+        // Normalize to H:i:s
         if (strlen($closeTime) === 5) {
             $closeTime .= ':00';
         }
 
+        $openTime = '10:00:00'; // Cafe opens at 10:00
+
         $closeHour = (int) substr($closeTime, 0, 2);
 
-        if ($closeHour < 6) {
-            // Close time is after midnight (e.g., 02:00 AM)
-            // Closed when: current time >= close_time AND current time < 06:00
-            // OR it's daytime and past the implicit "open" start
-            // The category is OPEN during: 06:00 -> 23:59 -> 00:00 -> close_time
-            // The category is CLOSED during: close_time -> 05:59
-            if ($nowTime >= $closeTime && $nowTime < '06:00:00') {
+        if ($closeHour >= 10) {
+            // Close time is during the day (e.g., 22:30)
+            // Closed: close_time <= now OR now < open_time
+            // i.e., closed from 22:30 through midnight to 09:59
+            if ($nowTime >= $closeTime || $nowTime < $openTime) {
                 return true;
             }
-            return false;
         } else {
-            // Close time is during normal hours (e.g., 22:30)
-            // Closed when: now >= close_time (until midnight)
-            // But open again after midnight (for categories that close before midnight,
-            // the early morning is before cafe opens)
-            if ($nowTime >= $closeTime) {
+            // Close time is after midnight (e.g., 02:00)
+            // Closed: close_time <= now < open_time
+            // i.e., closed from 02:00 to 09:59
+            // But NOT closed before close_time (e.g., 01:30 is still open)
+            if ($nowTime >= $closeTime && $nowTime < $openTime) {
                 return true;
             }
-            // Also closed in early morning hours (00:00-05:59) for normal close times
-            // because the cafe is not yet open
-            if ($nowTime < '06:00:00') {
-                return true;
-            }
-            return false;
+            // Before midnight is always open (cafe hasn't reached close time yet)
         }
+
+        return false;
     }
 }
