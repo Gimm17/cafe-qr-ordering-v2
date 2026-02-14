@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Category;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
 
 class AdminSettingController extends Controller
@@ -12,10 +14,15 @@ class AdminSettingController extends Controller
     {
         $customPath = public_path('custom_notification.mp3');
         $hasCustom = File::exists($customPath);
-        
+
+        $categories = Category::where('is_active', true)
+            ->orderBy('sort_order')
+            ->get();
+
         return view('admin.settings', [
             'hasCustom' => $hasCustom,
-            'soundUrl' => $hasCustom ? asset('custom_notification.mp3') : asset('assets/audio/default.mp3')
+            'soundUrl' => $hasCustom ? asset('custom_notification.mp3') : asset('assets/audio/default.mp3'),
+            'categories' => $categories,
         ]);
     }
 
@@ -34,5 +41,26 @@ class AdminSettingController extends Controller
         }
 
         return back()->with('error', 'Gagal mengupload file.');
+    }
+
+    public function updateCloseOrder(Request $request)
+    {
+        $request->validate([
+            'close_order_time' => 'required|array',
+            'close_order_time.*' => 'nullable|date_format:H:i',
+        ]);
+
+        $times = $request->input('close_order_time', []);
+
+        foreach ($times as $categoryId => $time) {
+            Category::where('id', $categoryId)->update([
+                'close_order_time' => $time ?: null,
+            ]);
+        }
+
+        // Clear cached categories so changes take effect immediately
+        Cache::forget('menu_categories');
+
+        return back()->with('success', 'Pengaturan close order berhasil disimpan!');
     }
 }

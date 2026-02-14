@@ -30,9 +30,14 @@ class CartController extends Controller
             'modifiers.*' => ['integer', 'exists:mod_options,id'],
         ]);
 
-        $product = Product::findOrFail($data['product_id']);
+        $product = Product::with('category')->findOrFail($data['product_id']);
         if ($product->is_sold_out || !$product->is_active) {
             return back()->with('error', 'Menu sedang tidak tersedia.');
+        }
+
+        // Check if category is closed for ordering
+        if ($product->category && $product->category->isClosedOrder()) {
+            return back()->with('error', 'Menu ini sudah close order.');
         }
 
         $modifierIds = $data['modifiers'] ?? [];

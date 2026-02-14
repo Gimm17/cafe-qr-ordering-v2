@@ -61,8 +61,9 @@
         @else
         <div class="grid grid-cols-2 gap-4">
             @foreach($products as $product)
+            @php $isClosed = in_array($product->category_id, $closedCategoryIds); @endphp
             <a href="{{ route('cafe.product.show', $product->slug) }}" 
-               class="ui-card-flat overflow-hidden hover:shadow-soft transition-shadow {{ $product->is_sold_out ? 'opacity-60' : '' }}">
+               class="ui-card-flat overflow-hidden hover:shadow-soft transition-shadow {{ $product->is_sold_out ? 'opacity-60' : '' }} {{ $isClosed ? 'grayscale opacity-50 pointer-events-none' : '' }}">
                 <!-- Product Image -->
                 <div class="relative aspect-square bg-primary-50/40">
                     @if($product->image_url)
@@ -77,10 +78,13 @@
                     
                     <!-- Badges -->
                     <div class="absolute top-2 left-2 flex flex-col gap-1">
-                        @if($product->is_best_seller)
+                        @if($isClosed)
+                        <span class="bg-red-600 text-white px-2 py-1 rounded-lg text-[11px] font-bold shadow-sm">🚫 Close Order</span>
+                        @endif
+                        @if($product->is_best_seller && !$isClosed)
                         <span class="ui-chip px-2 py-1 text-[11px] font-bold text-amber-700">⭐ Best</span>
                         @endif
-                        @if($product->is_sold_out)
+                        @if($product->is_sold_out && !$isClosed)
                         <span class="ui-chip px-2 py-1 text-[11px] font-bold text-red-700">Habis</span>
                         @endif
                     </div>

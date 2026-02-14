@@ -22,6 +22,9 @@ class MenuController extends Controller
                 ->get();
         });
 
+        // Get IDs of categories currently closed for ordering
+        $closedCategoryIds = $categories->filter(fn ($cat) => $cat->isClosedOrder())->pluck('id')->toArray();
+
         $productsQuery = Product::where('is_active', true)
             ->with('category')
             ->orderByDesc('is_best_seller')
@@ -50,6 +53,7 @@ class MenuController extends Controller
             'tableNo' => session('cafe_table_no'),
             'search' => $search,
             'selectedCategory' => $categoryId,
+            'closedCategoryIds' => $closedCategoryIds,
         ]);
     }
 
@@ -61,12 +65,14 @@ class MenuController extends Controller
         $product->load(['modGroups' => function ($q) {
             $q->where('mod_groups.is_active', true)
               ->orderBy('product_mod_groups.sort_order');
-        }, 'modGroups.activeOptions']);
+        }, 'modGroups.activeOptions', 'category']);
+
+        $isCloseOrder = $product->category ? $product->category->isClosedOrder() : false;
 
         return view('cafe.product', [
             'product' => $product,
             'tableNo' => session('cafe_table_no'),
+            'isCloseOrder' => $isCloseOrder,
         ]);
     }
 }
-

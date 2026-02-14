@@ -68,5 +68,6 @@ Route::prefix('admin')->group(function () {
         // Settings
         Route::get('/settings', [\App\Http\Controllers\Admin\AdminSettingController::class, 'index'])->name('admin.settings');
         Route::post('/settings', [\App\Http\Controllers\Admin\AdminSettingController::class, 'update'])->name('admin.settings.update');
+        Route::post('/settings/close-order', [\App\Http\Controllers\Admin\AdminSettingController::class, 'updateCloseOrder'])->name('admin.settings.close-order');
     });
 });

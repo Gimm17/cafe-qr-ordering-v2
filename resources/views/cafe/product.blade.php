@@ -20,7 +20,7 @@
         </a>
 
         <!-- Image -->
-        <div class="relative rounded-2xl overflow-hidden mb-6 bg-primary-50/40 aspect-square border border-line">
+        <div class="relative rounded-2xl overflow-hidden mb-6 bg-primary-50/40 aspect-square border border-line {{ $isCloseOrder ? 'grayscale' : '' }}">
             @if($product->image_url)
             <img src="{{ $product->image_url }}" alt="{{ $product->name }}" class="w-full h-full object-cover">
             @else
@@ -32,14 +32,23 @@
             @endif
 
             <div class="absolute top-3 left-3 flex flex-col gap-2">
-                @if($product->is_best_seller)
+                @if($isCloseOrder)
+                <span class="bg-red-600 text-white px-3 py-1 rounded-lg text-[11px] font-bold shadow-sm">🚫 Close Order</span>
+                @endif
+                @if($product->is_best_seller && !$isCloseOrder)
                 <span class="ui-chip px-3 py-1 text-[11px] font-bold text-amber-700">⭐ Best</span>
                 @endif
-                @if($product->is_sold_out)
+                @if($product->is_sold_out && !$isCloseOrder)
                 <span class="ui-chip px-3 py-1 text-[11px] font-bold text-red-700">Habis</span>
                 @endif
             </div>
         </div>
+
+        @if($isCloseOrder)
+        <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-2xl text-red-700 text-sm flex items-center gap-2">
+            🚫 <strong>Menu ini sudah Close Order.</strong> Tidak bisa ditambahkan ke keranjang.
+        </div>
+        @endif
 
         <!-- Info -->
         <div class="mb-6">
@@ -132,7 +141,11 @@
                     <span class="text-xl font-extrabold text-primary-700" id="totalPrice">{{ $product->price_rupiah }}</span>
                 </div>
 
-                @if($product->is_sold_out)
+                @if($isCloseOrder)
+                <button type="button" disabled class="w-full tap-44 py-3 bg-gray-200 text-gray-500 font-semibold ui-btn cursor-not-allowed">
+                    🚫 Close Order
+                </button>
+                @elseif($product->is_sold_out)
                 <button type="button" disabled class="w-full tap-44 py-3 bg-gray-200 text-gray-500 font-semibold ui-btn cursor-not-allowed">
                     Stok Habis
                 </button>
