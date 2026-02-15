@@ -354,12 +354,5 @@
     <a href="{{ $backUrl }}" class="btn btn-outline">← Kembali</a>
 </div>
 
-<script>
-    // Auto-trigger print dialog
-    window.addEventListener('load', function() {
-        setTimeout(function() { window.print(); }, 500);
-    });
-</script>
-
 </body>
 </html>
