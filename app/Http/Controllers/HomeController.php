@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use App\Models\Category;
+use App\Models\Banner;
 
 class HomeController extends Controller
 {
@@ -35,10 +36,13 @@ class HomeController extends Controller
             ->limit(4)
             ->get();
 
+        $banners = Banner::active()->ordered()->get();
+
         return view('home', [
             'categories' => $categories,
             'products' => $products,
             'bestSellers' => $bestSellers,
+            'banners' => $banners,
         ]);
     }
 }
