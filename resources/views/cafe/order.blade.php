@@ -119,12 +119,11 @@
         <!-- Download Struk Button -->
         @if($order->order_status === 'SELESAI' && $order->payment_status === 'PAID')
         <div class="mb-4" id="downloadReceiptSection">
-            <a href="{{ route('cafe.order.receipt', ['order' => $order->order_code, 't' => \App\Http\Controllers\Cafe\OrderController::receiptToken($order->order_code)]) }}"
-               target="_blank"
+            <button onclick="openReceiptModal()"
                class="w-full flex items-center justify-center gap-2 tap-44 px-5 py-3 bg-primary-600 text-white font-semibold ui-btn hover:bg-primary-700 transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                📥 Download Struk
-            </a>
+                📥 Lihat Struk
+            </button>
         </div>
         @endif
 
@@ -362,5 +361,65 @@
         }
         bindStarRatings();
     </script>
+
+    @if($order->order_status === 'SELESAI' && $order->payment_status === 'PAID')
+    <script>
+    function openReceiptModal() {
+        const modal = document.getElementById('receiptModal');
+        const iframe = document.getElementById('receiptIframe');
+        const spinner = document.getElementById('receiptSpinner');
+        modal.style.display = 'flex';
+        setTimeout(() => modal.classList.add('active'), 10);
+        document.body.style.overflow = 'hidden';
+        spinner.style.display = 'flex';
+        iframe.style.opacity = '0';
+        iframe.src = @json(route('cafe.order.receipt', ['order' => $order->order_code, 't' => \App\Http\Controllers\Cafe\OrderController::receiptToken($order->order_code)]));
+        iframe.onload = function() {
+            spinner.style.display = 'none';
+            iframe.style.opacity = '1';
+        };
+    }
+    function closeReceiptModal() {
+        const modal = document.getElementById('receiptModal');
+        modal.classList.remove('active');
+        setTimeout(() => {
+            modal.style.display = 'none';
+            document.body.style.overflow = '';
+            document.getElementById('receiptIframe').src = '';
+        }, 250);
+    }
+    function printReceipt() {
+        document.getElementById('receiptIframe').contentWindow.print();
+    }
+    </script>
+    @endif
     </x-slot:scripts>
+
+    {{-- Receipt Modal --}}
+    @if($order->order_status === 'SELESAI' && $order->payment_status === 'PAID')
+    <div id="receiptModal" style="display:none;position:fixed;inset:0;z-index:9999;align-items:center;justify-content:center;backdrop-filter:blur(4px);" onclick="if(event.target===this)closeReceiptModal()">
+        <style>
+            #receiptModal { background:rgba(0,0,0,0); transition:background .25s; }
+            #receiptModal.active { background:rgba(0,0,0,.5); }
+            #receiptModal .receipt-popup { transform:translateY(20px) scale(.97); opacity:0; transition:all .25s cubic-bezier(.4,0,.2,1); }
+            #receiptModal.active .receipt-popup { transform:translateY(0) scale(1); opacity:1; }
+        </style>
+        <div class="receipt-popup" style="background:#fff;border-radius:20px;width:95%;max-width:460px;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.2);overflow:hidden;">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #eee;flex-shrink:0;">
+                <h3 style="font-weight:700;font-size:16px;color:#1a1a1a;margin:0;">📄 Struk Pembelian</h3>
+                <div style="display:flex;gap:8px;">
+                    <button onclick="printReceipt()" style="padding:8px 16px;background:#4f46e5;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;">🖨️ Cetak</button>
+                    <button onclick="closeReceiptModal()" style="width:36px;height:36px;background:#f3f4f6;border:none;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;color:#666;">✕</button>
+                </div>
+            </div>
+            <div style="flex:1;overflow:hidden;position:relative;min-height:300px;">
+                <div id="receiptSpinner" style="display:flex;position:absolute;inset:0;align-items:center;justify-content:center;background:#fff;">
+                    <div style="width:32px;height:32px;border:3px solid #e5e7eb;border-top-color:#4f46e5;border-radius:50%;animation:spin .7s linear infinite;"></div>
+                </div>
+                <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+                <iframe id="receiptIframe" style="width:100%;height:100%;border:none;opacity:0;transition:opacity .3s;" title="Struk"></iframe>
+            </div>
+        </div>
+    </div>
+    @endif
 </x-cafe-layout>
