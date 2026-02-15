@@ -66,111 +66,188 @@ class AdminTableController extends Controller
     }
 
     /**
-     * Download QR code with styled card (cafe name, table number, instruction)
+     * Download QR code with styled card (logo, cafe name, table number, instruction)
      */
     public function downloadQr(CafeTable $table, string $format)
     {
         $token = $table->activeToken();
         abort_if(!$token, 404);
 
-        $cafeName = config('app.name', 'Cafe QR');
-        $tableNo = $table->table_no;
-        $url = url('/t/'.$token->token);
-        
+        $cafeName   = \App\Models\Setting::getValue('cafe_name', config('app.name', 'Nindito'));
+        $cafeTag    = \App\Models\Setting::getValue('cafe_tagline', 'Coffee & Friends');
+        $tableNo    = $table->table_no;
+        $tableName  = $table->name ?: "Meja {$tableNo}";
+        $url        = url('/t/'.$token->token);
+
         // Generate QR code
         $qrPng = $this->qr->png($url, 300);
-        
-        // Create styled image with GD
-        $width = 400;
-        $height = 520;
-        
+
+        // === Canvas ===
+        $width  = 420;
+        $height = 600;
         $img = imagecreatetruecolor($width, $height);
-        
-        // Colors
-        $white = imagecolorallocate($img, 255, 255, 255);
-        $black = imagecolorallocate($img, 0, 0, 0);
-        $primary = imagecolorallocate($img, 5, 150, 105); // Emerald-600
-        $gray = imagecolorallocate($img, 107, 114, 128);
-        $darkGray = imagecolorallocate($img, 31, 41, 55);
-        
-        // Fill background white
-        imagefilledrectangle($img, 0, 0, $width, $height, $white);
-        
-        // Header bar (primary color)
-        imagefilledrectangle($img, 0, 0, $width, 50, $primary);
-        
-        // Cafe name (centered in header)
-        $font = 5; // Built-in font
-        $textWidth = imagefontwidth($font) * strlen($cafeName);
-        $x = ($width - $textWidth) / 2;
-        imagestring($img, $font, $x, 17, $cafeName, $white);
-        
-        // Load QR code from string
+        imagesavealpha($img, true);
+
+        // --- Colors ---
+        $white      = imagecolorallocate($img, 255, 255, 255);
+        $offWhite   = imagecolorallocate($img, 250, 247, 243); // bone bg
+        $indigo     = imagecolorallocate($img, 35, 74, 230);   // #234AE6
+        $indigoDark = imagecolorallocate($img, 28, 55, 180);
+        $textDark   = imagecolorallocate($img, 31, 41, 55);
+        $textMuted  = imagecolorallocate($img, 120, 113, 108);
+        $borderClr  = imagecolorallocate($img, 229, 225, 220);
+
+        // Background
+        imagefilledrectangle($img, 0, 0, $width, $height, $offWhite);
+
+        // === Header bar (indigo gradient simulation) ===
+        $headerH = 90;
+        for ($y = 0; $y < $headerH; $y++) {
+            $ratio = $y / $headerH;
+            $r = (int)(35 + (28 - 35) * $ratio);
+            $g = (int)(74 + (55 - 74) * $ratio);
+            $b = (int)(230 + (180 - 230) * $ratio);
+            $lineColor = imagecolorallocate($img, $r, $g, $b);
+            imageline($img, 0, $y, $width, $y, $lineColor);
+        }
+
+        // === Logo (circular) ===
+        $logoPath = public_path('assets/brand/logo.png');
+        $logoSize = 50;
+        $logoX = ($width - $logoSize) / 2;
+        $logoY = 6;
+
+        if (file_exists($logoPath)) {
+            $logoSrc = imagecreatefrompng($logoPath);
+            if ($logoSrc) {
+                $srcW = imagesx($logoSrc);
+                $srcH = imagesy($logoSrc);
+
+                // Create circular mask via temp image
+                $circle = imagecreatetruecolor($logoSize, $logoSize);
+                imagesavealpha($circle, true);
+                $transparent = imagecolorallocatealpha($circle, 0, 0, 0, 127);
+                imagefill($circle, 0, 0, $transparent);
+
+                // Scale logo into circle
+                $scaled = imagecreatetruecolor($logoSize, $logoSize);
+                imagecopyresampled($scaled, $logoSrc, 0, 0, 0, 0, $logoSize, $logoSize, $srcW, $srcH);
+
+                // Draw white circle background
+                imagefilledellipse($img, (int)($logoX + $logoSize / 2), (int)($logoY + $logoSize / 2), $logoSize + 4, $logoSize + 4, $white);
+
+                // Copy scaled logo
+                imagecopyresampled($img, $logoSrc, (int)$logoX, (int)$logoY, 0, 0, $logoSize, $logoSize, $srcW, $srcH);
+
+                imagedestroy($logoSrc);
+                imagedestroy($circle);
+                imagedestroy($scaled);
+            }
+        }
+
+        // === Cafe name (header) ===
+        $font = 5;
+        $nameW = imagefontwidth($font) * strlen($cafeName);
+        $nameX = ($width - $nameW) / 2;
+        imagestring($img, $font, (int)$nameX, $logoY + $logoSize + 6, $cafeName, $white);
+
+        // === Tagline ===
+        $tagFont = 2;
+        $tagW = imagefontwidth($tagFont) * strlen($cafeTag);
+        $tagX = ($width - $tagW) / 2;
+        imagestring($img, $tagFont, (int)$tagX, $logoY + $logoSize + 24, $cafeTag, imagecolorallocate($img, 200, 210, 255));
+
+        // === QR Code (centered, with white card) ===
         $qrImage = imagecreatefromstring($qrPng);
         if ($qrImage) {
             $qrSize = 300;
-            $qrX = ($width - $qrSize) / 2;
-            $qrY = 70;
-            imagecopy($img, $qrImage, $qrX, $qrY, 0, 0, imagesx($qrImage), imagesy($qrImage));
+            $cardPad = 15;
+            $cardW = $qrSize + $cardPad * 2;
+            $cardH = $qrSize + $cardPad * 2;
+            $cardX = ($width - $cardW) / 2;
+            $cardY = $headerH + 15;
+
+            // White card behind QR
+            imagefilledrectangle($img, (int)$cardX, (int)$cardY, (int)($cardX + $cardW), (int)($cardY + $cardH), $white);
+            imagerectangle($img, (int)$cardX, (int)$cardY, (int)($cardX + $cardW), (int)($cardY + $cardH), $borderClr);
+
+            // QR image
+            $qrX = $cardX + $cardPad;
+            $qrY = $cardY + $cardPad;
+            imagecopyresampled($img, $qrImage, (int)$qrX, (int)$qrY, 0, 0, $qrSize, $qrSize, imagesx($qrImage), imagesy($qrImage));
             imagedestroy($qrImage);
         }
-        
-        // Table badge (black rounded rectangle simulation)
-        $badgeY = 390;
-        $badgeWidth = 120;
-        $badgeHeight = 35;
-        $badgeX = ($width - $badgeWidth) / 2;
-        imagefilledrectangle($img, $badgeX, $badgeY, $badgeX + $badgeWidth, $badgeY + $badgeHeight, $darkGray);
-        
-        // Table text
-        $tableText = "MEJA " . $tableNo;
-        $tableTextWidth = imagefontwidth(5) * strlen($tableText);
-        $tableTextX = ($width - $tableTextWidth) / 2;
-        imagestring($img, 5, $tableTextX, $badgeY + 10, $tableText, $white);
-        
-        // Instruction text
-        $instruction1 = "Silahkan scan QR untuk pesan";
-        $instruction2 = "atau langsung ke kasir";
-        
-        $inst1Width = imagefontwidth(2) * strlen($instruction1);
-        $inst2Width = imagefontwidth(2) * strlen($instruction2);
-        
-        imagestring($img, 2, ($width - $inst1Width) / 2, 445, $instruction1, $gray);
-        imagestring($img, 2, ($width - $inst2Width) / 2, 465, $instruction2, $gray);
-        
-        // Border
-        imagerectangle($img, 0, 0, $width - 1, $height - 1, $gray);
-        
+
+        // === Table badge (indigo pill) ===
+        $badgeText = "MEJA " . $tableNo;
+        $badgeW = imagefontwidth(5) * strlen($badgeText) + 40;
+        $badgeH = 36;
+        $badgeX = ($width - $badgeW) / 2;
+        $badgeY = ($cardY ?? $headerH + 15) + ($cardH ?? 330) + 15;
+
+        // Rounded rectangle for badge
+        imagefilledrectangle($img, (int)$badgeX, (int)$badgeY, (int)($badgeX + $badgeW), (int)($badgeY + $badgeH), $indigo);
+        // Simulated rounded corners
+        imagefilledellipse($img, (int)($badgeX + 8), (int)($badgeY + 8), 16, 16, $indigo);
+        imagefilledellipse($img, (int)($badgeX + $badgeW - 8), (int)($badgeY + 8), 16, 16, $indigo);
+        imagefilledellipse($img, (int)($badgeX + 8), (int)($badgeY + $badgeH - 8), 16, 16, $indigo);
+        imagefilledellipse($img, (int)($badgeX + $badgeW - 8), (int)($badgeY + $badgeH - 8), 16, 16, $indigo);
+
+        // Badge text
+        $btW = imagefontwidth(5) * strlen($badgeText);
+        $btX = ($width - $btW) / 2;
+        imagestring($img, 5, (int)$btX, (int)($badgeY + 10), $badgeText, $white);
+
+        // === Table name (if custom) ===
+        if ($table->name) {
+            $tnW = imagefontwidth(3) * strlen($table->name);
+            $tnX = ($width - $tnW) / 2;
+            imagestring($img, 3, (int)$tnX, (int)($badgeY + $badgeH + 8), $table->name, $textDark);
+        }
+
+        // === Instruction ===
+        $inst1 = "Scan QR untuk pesan.";
+        $inst2 = "Bisa juga langsung ke kasir.";
+        $instY = $badgeY + $badgeH + ($table->name ? 30 : 15);
+
+        $i1W = imagefontwidth(2) * strlen($inst1);
+        $i2W = imagefontwidth(2) * strlen($inst2);
+        imagestring($img, 2, (int)(($width - $i1W) / 2), (int)$instY, $inst1, $textMuted);
+        imagestring($img, 2, (int)(($width - $i2W) / 2), (int)($instY + 18), $inst2, $textMuted);
+
+        // === Thin bottom bar (indigo accent) ===
+        imagefilledrectangle($img, 0, $height - 4, $width, $height, $indigo);
+
+        // === Outer border ===
+        imagerectangle($img, 0, 0, $width - 1, $height - 1, $borderClr);
+
         $filename = "QR_Meja_{$tableNo}";
-        
+
         if ($format === 'pdf') {
-            // For PDF, we'll create a simple PDF with the image
-            // Using a basic approach without external PDF libraries
             ob_start();
             imagepng($img);
             $pngData = ob_get_clean();
             imagedestroy($img);
-            
-            // Create a simple HTML wrapper that can be printed as PDF
+
             $base64 = base64_encode($pngData);
             $html = "<!DOCTYPE html><html><head><title>QR Meja {$tableNo}</title><style>
                 @page { size: A6; margin: 0; }
-                body { margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-                img { max-width: 100%; height: auto; }
+                body { margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #FAF7F3; }
+                img { max-width: 100%; height: auto; box-shadow: 0 2px 12px rgba(0,0,0,.08); }
                 @media print { body { -webkit-print-color-adjust: exact; } }
             </style></head><body><img src='data:image/png;base64,{$base64}'><script>window.print();</script></body></html>";
-            
+
             return response($html)
                 ->header('Content-Type', 'text/html')
                 ->header('Content-Disposition', "inline; filename=\"{$filename}.html\"");
         }
-        
+
         // PNG download
         ob_start();
         imagepng($img);
         $pngData = ob_get_clean();
         imagedestroy($img);
-        
+
         return response($pngData)
             ->header('Content-Type', 'image/png')
             ->header('Content-Disposition', "attachment; filename=\"{$filename}.png\"");
