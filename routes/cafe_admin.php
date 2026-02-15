@@ -71,5 +71,6 @@ Route::prefix('admin')->group(function () {
         Route::post('/settings', [\App\Http\Controllers\Admin\AdminSettingController::class, 'update'])->name('admin.settings.update');
         Route::post('/settings/close-order', [\App\Http\Controllers\Admin\AdminSettingController::class, 'updateCloseOrder'])->name('admin.settings.close-order');
         Route::post('/settings/toggle-cafe', [\App\Http\Controllers\Admin\AdminSettingController::class, 'toggleCafe'])->name('admin.settings.toggle-cafe');
+        Route::post('/settings/receipt', [\App\Http\Controllers\Admin\AdminSettingController::class, 'updateReceipt'])->name('admin.settings.receipt');
     });
 });

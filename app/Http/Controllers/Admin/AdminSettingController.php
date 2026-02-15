@@ -25,6 +25,15 @@ class AdminSettingController extends Controller
             'soundUrl' => $hasCustom ? asset('custom_notification.mp3') : asset('assets/audio/default.mp3'),
             'categories' => $categories,
             'cafeIsOpen' => Setting::isCafeOpen(),
+            // Receipt settings
+            'receiptLogo'           => Setting::getValue('receipt_logo'),
+            'receiptShowLogo'       => Setting::getValue('receipt_show_logo', '0'),
+            'receiptCafeLocation'   => Setting::getValue('receipt_cafe_location'),
+            'receiptFooterText'     => Setting::getValue('receipt_footer_text', 'Terima kasih! 🙏'),
+            'receiptTheme'          => Setting::getValue('receipt_theme', 'normal'),
+            'receiptShowStatus'     => Setting::getValue('receipt_show_status_badges', '1'),
+            'receiptShowCustomer'   => Setting::getValue('receipt_show_customer_info', '1'),
+            'receiptShowPayment'    => Setting::getValue('receipt_show_payment_method', '1'),
         ]);
     }
 
@@ -42,6 +51,51 @@ class AdminSettingController extends Controller
         }
 
         return back()->with('error', 'Gagal mengupload file.');
+    }
+
+    public function updateReceipt(Request $request)
+    {
+        $request->validate([
+            'receipt_logo'          => 'nullable|image|mimes:png,jpg,jpeg,webp|max:1024',
+            'receipt_cafe_location' => 'nullable|string|max:500',
+            'receipt_footer_text'   => 'nullable|string|max:200',
+            'receipt_theme'         => 'required|in:normal,bw',
+        ]);
+
+        // Handle logo upload
+        if ($request->hasFile('receipt_logo')) {
+            // Delete old logo if exists
+            $oldLogo = Setting::getValue('receipt_logo');
+            if ($oldLogo && File::exists(public_path($oldLogo))) {
+                File::delete(public_path($oldLogo));
+            }
+
+            $file = $request->file('receipt_logo');
+            $filename = 'receipt_logo_' . time() . '.' . $file->getClientOriginalExtension();
+            $file->move(public_path('uploads'), $filename);
+            Setting::setValue('receipt_logo', 'uploads/' . $filename);
+        }
+
+        // Handle logo removal
+        if ($request->boolean('remove_logo')) {
+            $oldLogo = Setting::getValue('receipt_logo');
+            if ($oldLogo && File::exists(public_path($oldLogo))) {
+                File::delete(public_path($oldLogo));
+            }
+            Setting::setValue('receipt_logo', null);
+            Setting::setValue('receipt_show_logo', '0');
+        }
+
+        // Save text settings
+        Setting::setValue('receipt_show_logo', $request->boolean('receipt_show_logo') ? '1' : '0');
+        Setting::setValue('receipt_cafe_location', $request->input('receipt_cafe_location'));
+        Setting::setValue('receipt_footer_text', $request->input('receipt_footer_text', 'Terima kasih! 🙏'));
+        Setting::setValue('receipt_theme', $request->input('receipt_theme', 'normal'));
+        Setting::setValue('receipt_show_status_badges', $request->boolean('receipt_show_status_badges') ? '1' : '0');
+        Setting::setValue('receipt_show_customer_info', $request->boolean('receipt_show_customer_info') ? '1' : '0');
+        Setting::setValue('receipt_show_payment_method', $request->boolean('receipt_show_payment_method') ? '1' : '0');
+
+        return back()->with('success', 'Pengaturan struk berhasil disimpan!');
     }
 
     public function updateCloseOrder(Request $request)

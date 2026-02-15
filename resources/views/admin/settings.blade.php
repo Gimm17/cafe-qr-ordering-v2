@@ -151,5 +151,133 @@
                 </div>
             </form>
         </div>
+
+        {{-- Receipt Customization Card --}}
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 md:col-span-2">
+            <h2 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                🧾 Kustomisasi Struk
+            </h2>
+
+            <p class="text-sm text-gray-600 mb-5">
+                Sesuaikan tampilan struk pembelian — logo, lokasi, pesan, tema, dan elemen yang ditampilkan.
+            </p>
+
+            <form action="{{ route('admin.settings.receipt') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
+                @csrf
+
+                {{-- Logo Section --}}
+                <div class="bg-gray-50 rounded-lg p-4 space-y-3">
+                    <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider block">Logo Cafe</label>
+
+                    @if($receiptLogo)
+                    <div class="flex items-center gap-4">
+                        <img src="{{ asset($receiptLogo) }}?t={{ time() }}" alt="Logo" class="w-16 h-16 object-contain rounded-lg border bg-white p-1">
+                        <div class="flex-1">
+                            <p class="text-sm text-gray-700 font-medium">Logo saat ini</p>
+                            <label class="inline-flex items-center gap-2 mt-1">
+                                <input type="checkbox" name="remove_logo" value="1" class="rounded border-gray-300 text-red-600 focus:ring-red-500">
+                                <span class="text-xs text-red-600">Hapus logo</span>
+                            </label>
+                        </div>
+                    </div>
+                    @endif
+
+                    <div>
+                        <input type="file" name="receipt_logo" accept=".png,.jpg,.jpeg,.webp"
+                            class="block w-full text-sm text-gray-500
+                            file:mr-4 file:py-2 file:px-4
+                            file:rounded-full file:border-0
+                            file:text-sm file:font-semibold
+                            file:bg-indigo-50 file:text-indigo-700
+                            hover:file:bg-indigo-100
+                            cursor-pointer border border-gray-300 rounded-lg bg-white">
+                        <p class="mt-1 text-xs text-gray-500">Maks 1MB. Format: PNG, JPG, WEBP.</p>
+                    </div>
+
+                    <label class="inline-flex items-center gap-2">
+                        <input type="checkbox" name="receipt_show_logo" value="1" {{ $receiptShowLogo === '1' ? 'checked' : '' }}
+                            class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                        <span class="text-sm text-gray-700">Tampilkan logo di struk</span>
+                    </label>
+                </div>
+
+                {{-- Location --}}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Lokasi / Alamat Cafe</label>
+                    <textarea name="receipt_cafe_location" rows="2" maxlength="500"
+                        class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        placeholder="Jl. Contoh No. 123, Kota, Provinsi">{{ $receiptCafeLocation }}</textarea>
+                </div>
+
+                {{-- Footer Text --}}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Pesan Footer Struk</label>
+                    <input type="text" name="receipt_footer_text" maxlength="200" value="{{ $receiptFooterText }}"
+                        class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        placeholder="Terima kasih! 🙏">
+                </div>
+
+                {{-- Theme --}}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Tema Struk</label>
+                    <div class="flex gap-3">
+                        <label class="flex-1 cursor-pointer">
+                            <input type="radio" name="receipt_theme" value="normal" {{ $receiptTheme === 'normal' ? 'checked' : '' }} class="peer sr-only">
+                            <div class="peer-checked:ring-2 peer-checked:ring-indigo-500 peer-checked:border-indigo-500 border border-gray-200 rounded-xl p-4 text-center transition-all hover:bg-gray-50">
+                                <div class="text-2xl mb-1">🎨</div>
+                                <div class="text-sm font-semibold text-gray-900">Normal</div>
+                                <div class="text-xs text-gray-500">Warna & badge</div>
+                            </div>
+                        </label>
+                        <label class="flex-1 cursor-pointer">
+                            <input type="radio" name="receipt_theme" value="bw" {{ $receiptTheme === 'bw' ? 'checked' : '' }} class="peer sr-only">
+                            <div class="peer-checked:ring-2 peer-checked:ring-indigo-500 peer-checked:border-indigo-500 border border-gray-200 rounded-xl p-4 text-center transition-all hover:bg-gray-50">
+                                <div class="text-2xl mb-1">🖨️</div>
+                                <div class="text-sm font-semibold text-gray-900">Hitam Putih</div>
+                                <div class="text-xs text-gray-500">Minimal, hemat tinta</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                {{-- Section Toggles --}}
+                <div class="bg-gray-50 rounded-lg p-4 space-y-3">
+                    <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider block">Elemen yang Ditampilkan</label>
+
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        <input type="checkbox" name="receipt_show_status_badges" value="1" {{ $receiptShowStatus === '1' ? 'checked' : '' }}
+                            class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                        <div>
+                            <span class="text-sm font-medium text-gray-900">Status Badge</span>
+                            <p class="text-xs text-gray-500">Selesai, Paid, metode bayar</p>
+                        </div>
+                    </label>
+
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        <input type="checkbox" name="receipt_show_customer_info" value="1" {{ $receiptShowCustomer === '1' ? 'checked' : '' }}
+                            class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                        <div>
+                            <span class="text-sm font-medium text-gray-900">Info Customer</span>
+                            <p class="text-xs text-gray-500">Nama, meja, tipe, tanggal</p>
+                        </div>
+                    </label>
+
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        <input type="checkbox" name="receipt_show_payment_method" value="1" {{ $receiptShowPayment === '1' ? 'checked' : '' }}
+                            class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                        <div>
+                            <span class="text-sm font-medium text-gray-900">Metode Pembayaran</span>
+                            <p class="text-xs text-gray-500">Label metode bayar di status</p>
+                        </div>
+                    </label>
+                </div>
+
+                <div class="flex justify-end">
+                    <button type="submit" class="px-5 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium transition-colors">
+                        Simpan Pengaturan Struk
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </x-admin-layout>

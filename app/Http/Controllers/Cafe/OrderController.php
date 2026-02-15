@@ -46,6 +46,15 @@ class OrderController extends Controller
             'cafeAddress'   => Setting::getValue('cafe_address'),
             'cafeWhatsapp'  => Setting::getValue('cafe_whatsapp'),
             'backUrl'       => route('cafe.order.show', $order->order_code),
+            // Receipt customization
+            'receiptLogoUrl'    => ($logo = Setting::getValue('receipt_logo')) ? asset($logo) : null,
+            'receiptShowLogo'   => Setting::getValue('receipt_show_logo', '0'),
+            'receiptLocation'   => Setting::getValue('receipt_cafe_location'),
+            'receiptFooterText' => Setting::getValue('receipt_footer_text', 'Terima kasih! 🙏'),
+            'receiptTheme'      => Setting::getValue('receipt_theme', 'normal'),
+            'receiptShowStatus' => Setting::getValue('receipt_show_status_badges', '1'),
+            'receiptShowCustomer' => Setting::getValue('receipt_show_customer_info', '1'),
+            'receiptShowPayment'  => Setting::getValue('receipt_show_payment_method', '1'),
         ]);
     }
 
