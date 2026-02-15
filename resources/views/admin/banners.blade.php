@@ -29,6 +29,16 @@
                     <p class="text-xs text-gray-500 mt-1">Maks 2MB per file. Format: PNG, JPG, WEBP. Bisa pilih banyak file.</p>
                 </div>
 
+                {{-- Tips --}}
+                <div class="bg-blue-50 text-blue-800 text-xs p-3 rounded-lg flex gap-2">
+                    <span class="text-lg">💡</span>
+                    <div>
+                        <p class="font-bold">Saran Ukuran Gambar:</p>
+                        <p>Gunakan resolusi sekitar <span class="font-mono bg-blue-100 px-1 rounded">1200 x 500 px</span>.</p>
+                        <p class="mt-1 opacity-80">Gambar akan otomatis dipotong (crop) menyesuaikan layar HP & Laptop. Pastikan objek utama berada di <strong>tengah</strong>.</p>
+                    </div>
+                </div>
+
                 {{-- Preview --}}
                 <div id="previewContainer" class="hidden grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3"></div>
 
