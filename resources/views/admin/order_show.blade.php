@@ -156,7 +156,7 @@
             @endif
 
             <!-- Print -->
-            <button onclick="openReceiptModal()" class="w-full tap-44 py-3 bg-white border border-line text-gray-800 font-semibold ui-btn hover:bg-gray-50 transition-colors flex items-center justify-center gap-2">
+            <button onclick="openReceiptModal()" class="w-full tap-44 py-3 bg-primary-600 text-white font-semibold ui-btn hover:bg-primary-700 transition-colors flex items-center justify-center gap-2">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
                 Print Struk
             </button>
@@ -174,10 +174,7 @@
         <div class="receipt-popup" style="background:#fff;border-radius:20px;width:95%;max-width:460px;height:85vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.2);overflow:hidden;">
             <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #eee;flex-shrink:0;">
                 <h3 style="font-weight:700;font-size:16px;color:#1a1a1a;margin:0;">📄 Struk Pembelian</h3>
-                <div style="display:flex;gap:8px;">
-                    <button onclick="printReceipt()" style="padding:8px 16px;background:#4f46e5;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;">🖨️ Cetak</button>
-                    <button onclick="closeReceiptModal()" style="width:36px;height:36px;background:#f3f4f6;border:none;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;color:#666;">✕</button>
-                </div>
+                <button onclick="closeReceiptModal()" style="width:36px;height:36px;background:#f3f4f6;border:none;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;color:#666;">✕</button>
             </div>
             <div style="flex:1;overflow:hidden;position:relative;min-height:400px;">
                 <div id="receiptSpinner" style="display:flex;position:absolute;inset:0;align-items:center;justify-content:center;background:#fff;">
