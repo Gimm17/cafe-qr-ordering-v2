@@ -72,5 +72,12 @@ Route::prefix('admin')->group(function () {
         Route::post('/settings/close-order', [\App\Http\Controllers\Admin\AdminSettingController::class, 'updateCloseOrder'])->name('admin.settings.close-order');
         Route::post('/settings/toggle-cafe', [\App\Http\Controllers\Admin\AdminSettingController::class, 'toggleCafe'])->name('admin.settings.toggle-cafe');
         Route::post('/settings/receipt', [\App\Http\Controllers\Admin\AdminSettingController::class, 'updateReceipt'])->name('admin.settings.receipt');
+
+        // Banners
+        Route::get('/banners', [\App\Http\Controllers\Admin\AdminBannerController::class, 'index'])->name('admin.banners');
+        Route::post('/banners', [\App\Http\Controllers\Admin\AdminBannerController::class, 'store'])->name('admin.banners.store');
+        Route::post('/banners/{banner}/toggle', [\App\Http\Controllers\Admin\AdminBannerController::class, 'toggleActive'])->name('admin.banners.toggle');
+        Route::post('/banners/{banner}/delete', [\App\Http\Controllers\Admin\AdminBannerController::class, 'destroy'])->name('admin.banners.delete');
+        Route::post('/banners/reorder', [\App\Http\Controllers\Admin\AdminBannerController::class, 'reorder'])->name('admin.banners.reorder');
     });
 });

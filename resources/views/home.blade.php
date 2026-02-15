@@ -130,6 +130,34 @@
             opacity: 1;
             transform: translateY(0);
         }
+
+        /* ── Hero Carousel ── */
+        .hero-carousel { position: relative; overflow: hidden; }
+        .carousel-track { display: flex; transition: transform .5s cubic-bezier(.22,1,.36,1); }
+        .carousel-slide { min-width: 100%; flex-shrink: 0; }
+        .carousel-arrow {
+            position: absolute; top: 50%; transform: translateY(-50%);
+            width: 36px; height: 36px; border-radius: 50%;
+            background: rgba(255,255,255,.85); border: none;
+            font-size: 20px; line-height: 1; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,.15);
+            opacity: 0; transition: opacity .3s;
+            z-index: 2; color: #333;
+        }
+        .hero-carousel:hover .carousel-arrow { opacity: 1; }
+        .carousel-prev { left: 10px; }
+        .carousel-next { right: 10px; }
+        .carousel-dots {
+            position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%);
+            display: flex; gap: 6px; z-index: 2;
+        }
+        .carousel-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: rgba(255,255,255,.5); border: none;
+            cursor: pointer; transition: all .3s;
+        }
+        .carousel-dot.active { background: #fff; transform: scale(1.3); }
     </style>
 </head>
 <body class="bg-bone text-ink min-h-screen">
@@ -158,7 +186,38 @@
         <section class="max-w-6xl mx-auto px-4 pt-8 pb-6 anim-fade-up">
             <div class="ui-card overflow-hidden">
                 <div class="relative">
+                    @php $activeBanners = isset($banners) ? $banners : collect(); @endphp
+
+                    @if($activeBanners->count() > 1)
+                    {{-- Carousel --}}
+                    <div class="hero-carousel" id="heroCarousel">
+                        <div class="carousel-track" id="carouselTrack">
+                            @foreach($activeBanners as $banner)
+                            <div class="carousel-slide">
+                                <img src="{{ asset($banner->image_path) }}" alt="Banner {{ $loop->iteration }}" class="w-full h-64 sm:h-72 object-cover" {{ $loop->first ? 'loading=eager' : 'loading=lazy' }}>
+                            </div>
+                            @endforeach
+                        </div>
+
+                        {{-- Arrows --}}
+                        <button type="button" class="carousel-arrow carousel-prev" onclick="moveCarousel(-1)">‹</button>
+                        <button type="button" class="carousel-arrow carousel-next" onclick="moveCarousel(1)">›</button>
+
+                        {{-- Dots --}}
+                        <div class="carousel-dots" id="carouselDots">
+                            @foreach($activeBanners as $banner)
+                            <button type="button" class="carousel-dot {{ $loop->first ? 'active' : '' }}" onclick="goToSlide({{ $loop->index }})"></button>
+                            @endforeach
+                        </div>
+                    </div>
+                    @elseif($activeBanners->count() === 1)
+                    {{-- Single banner --}}
+                    <img src="{{ asset($activeBanners->first()->image_path) }}" alt="Banner" class="w-full h-64 sm:h-72 object-cover" loading="eager">
+                    @else
+                    {{-- Default --}}
                     <img src="/assets/brand/hero-interior.webp" alt="Nindito" class="w-full h-64 sm:h-72 object-cover" loading="eager">
+                    @endif
+
                     <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent"></div>
 
                     <div class="absolute bottom-5 left-5 right-5 text-white">
@@ -520,6 +579,30 @@
             document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
         });
     </script>
+
+    {{-- Carousel JS --}}
+    @if(isset($banners) && $banners->count() > 1)
+    <script>
+    (function(){
+        let idx = 0;
+        const track = document.getElementById('carouselTrack');
+        const dots = document.querySelectorAll('.carousel-dot');
+        const total = dots.length;
+        if (!track || total < 2) return;
+
+        function goTo(n) {
+            idx = (n + total) % total;
+            track.style.transform = 'translateX(-' + (idx * 100) + '%)';
+            dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+        }
+        window.moveCarousel = function(dir) { goTo(idx + dir); resetTimer(); };
+        window.goToSlide = function(n) { goTo(n); resetTimer(); };
+
+        let timer = setInterval(() => goTo(idx + 1), 5000);
+        function resetTimer() { clearInterval(timer); timer = setInterval(() => goTo(idx + 1), 5000); }
+    })();
+    </script>
+    @endif
 </body>
 </html>
 
