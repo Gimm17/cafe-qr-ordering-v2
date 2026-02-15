@@ -21,6 +21,7 @@ Route::prefix('admin')->group(function () {
         // Orders
         Route::get('/orders', [AdminOrderController::class, 'index'])->name('admin.orders');
         Route::get('/orders/{order}', [AdminOrderController::class, 'show'])->name('admin.orders.show');
+        Route::get('/orders/{order}/receipt', [AdminOrderController::class, 'receipt'])->name('admin.orders.receipt');
         Route::post('/orders/{order}/status', [AdminOrderController::class, 'setStatus'])->name('admin.orders.status');
         Route::delete('/orders/{order}', [AdminOrderController::class, 'destroy'])->name('admin.orders.delete');
 

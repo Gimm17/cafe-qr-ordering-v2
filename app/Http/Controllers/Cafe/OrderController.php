@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Cafe;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Models\Setting;
+use Illuminate\Http\Request;
 
 class OrderController extends Controller
 {
@@ -15,6 +17,35 @@ class OrderController extends Controller
         return view('cafe.order', [
             'order' => $order,
             'tableNo' => $order->table?->table_no ?? session('cafe_table_no'),
+        ]);
+    }
+
+    /**
+     * Render receipt page for buyer (secured with HMAC token).
+     */
+    public function receipt(Order $order, Request $request)
+    {
+        // Validate HMAC token
+        $expectedToken = hash_hmac('sha256', $order->order_code, config('app.key'));
+        if (!hash_equals($expectedToken, $request->query('t', ''))) {
+            abort(403, 'Token tidak valid.');
+        }
+
+        // Only allow receipt for completed & paid orders
+        if ($order->order_status !== 'SELESAI' || $order->payment_status !== 'PAID') {
+            abort(403, 'Struk hanya tersedia untuk pesanan yang sudah selesai dan dibayar.');
+        }
+
+        $order->load(['items.mods', 'table', 'payment.events']);
+
+        return view('receipt', [
+            'order'         => $order,
+            'paymentMethod' => $order->payment?->payment_method_label ?? 'Midtrans',
+            'cafeName'      => Setting::getValue('cafe_name', 'Nindito'),
+            'cafeTagline'   => Setting::getValue('cafe_tagline', 'Coffee & Friends'),
+            'cafeAddress'   => Setting::getValue('cafe_address'),
+            'cafeWhatsapp'  => Setting::getValue('cafe_whatsapp'),
+            'backUrl'       => route('cafe.order.show', $order->order_code),
         ]);
     }
 
@@ -87,4 +118,13 @@ class OrderController extends Controller
 
         return redirect()->route('cafe.history')->with('success', 'Pesanan berhasil dibatalkan.');
     }
+
+    /**
+     * Generate HMAC token for receipt URL.
+     */
+    public static function receiptToken(string $orderCode): string
+    {
+        return hash_hmac('sha256', $orderCode, config('app.key'));
+    }
 }
+

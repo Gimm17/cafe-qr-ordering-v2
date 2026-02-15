@@ -115,6 +115,19 @@
                 <span class="text-xl font-extrabold text-primary-700">Rp {{ number_format($order->grand_total, 0, ',', '.') }}</span>
             </div>
         </div>
+
+        <!-- Download Struk Button -->
+        @if($order->order_status === 'SELESAI' && $order->payment_status === 'PAID')
+        <div class="mb-4" id="downloadReceiptSection">
+            <a href="{{ route('cafe.order.receipt', ['order' => $order->order_code, 't' => \App\Http\Controllers\Cafe\OrderController::receiptToken($order->order_code)]) }}"
+               target="_blank"
+               class="w-full flex items-center justify-center gap-2 tap-44 px-5 py-3 bg-primary-600 text-white font-semibold ui-btn hover:bg-primary-700 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                📥 Download Struk
+            </a>
+        </div>
+        @endif
+
         <!-- Product Reviews -->
         <div class="ui-card overflow-hidden mb-6" id="reviewSection" style="{{ $order->order_status !== 'SELESAI' ? 'display:none;' : '' }}">
             <div class="p-5 border-b ui-divider">

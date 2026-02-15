@@ -92,6 +92,7 @@ class MidtransWebhookController extends Controller
             $payment->update([
                 'status'         => 'PAID',
                 'gateway_trx_id' => $txId,
+                'raw_response'   => $data,
             ]);
 
         } elseif ($txStatus === 'pending') {
