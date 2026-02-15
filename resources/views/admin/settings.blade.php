@@ -245,15 +245,6 @@
                     <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider block">Elemen yang Ditampilkan</label>
 
                     <label class="flex items-center gap-3 cursor-pointer">
-                        <input type="checkbox" name="receipt_show_status_badges" value="1" {{ $receiptShowStatus === '1' ? 'checked' : '' }}
-                            class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
-                        <div>
-                            <span class="text-sm font-medium text-gray-900">Status Badge</span>
-                            <p class="text-xs text-gray-500">Selesai, Paid, metode bayar</p>
-                        </div>
-                    </label>
-
-                    <label class="flex items-center gap-3 cursor-pointer">
                         <input type="checkbox" name="receipt_show_customer_info" value="1" {{ $receiptShowCustomer === '1' ? 'checked' : '' }}
                             class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
                         <div>
@@ -267,7 +258,7 @@
                             class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
                         <div>
                             <span class="text-sm font-medium text-gray-900">Metode Pembayaran</span>
-                            <p class="text-xs text-gray-500">Label metode bayar di status</p>
+                            <p class="text-xs text-gray-500">Tampilkan di bawah rincian pesanan</p>
                         </div>
                     </label>
                 </div>

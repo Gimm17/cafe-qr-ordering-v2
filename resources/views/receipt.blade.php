@@ -324,18 +324,7 @@
     </div>
     @endif
 
-    <!-- Status -->
-    @if(($receiptShowStatus ?? '1') === '1')
-    <div class="receipt-status">
-        <span class="status-chip chip-success">✓ {{ $order->order_status === 'SELESAI' ? 'Selesai' : $order->order_status }}</span>
-        @if($order->payment_status === 'PAID')
-            <span class="status-chip chip-paid">✓ Paid</span>
-        @endif
-        @if(($receiptShowPayment ?? '1') === '1')
-            <span class="status-chip chip-method">💳 {{ $paymentMethod }}</span>
-        @endif
-    </div>
-    @endif
+
 
     <!-- Items -->
     <div class="receipt-items">
@@ -360,6 +349,14 @@
         </div>
         @endforeach
     </div>
+
+    <!-- Payment Method -->
+    @if(($receiptShowPayment ?? '1') === '1')
+    <div style="margin:0 24px;padding:10px 0;border-top:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:12px;color:#888;">Metode Pembayaran</span>
+        <span style="font-size:13px;font-weight:600;color:#333;">💳 {{ $paymentMethod }}</span>
+    </div>
+    @endif
 
     <!-- Total -->
     <div class="receipt-total">
