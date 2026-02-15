@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Models\Setting;
 use Illuminate\Http\Request;
 
 class AdminOrderController extends Controller
@@ -42,6 +43,24 @@ class AdminOrderController extends Controller
         return view('admin.order_show', ['order' => $order]);
     }
 
+    /**
+     * Render receipt page for admin print.
+     */
+    public function receipt(Order $order)
+    {
+        $order->load(['items.mods', 'table', 'payment.events']);
+
+        return view('receipt', [
+            'order'         => $order,
+            'paymentMethod' => $order->payment?->payment_method_label ?? 'Midtrans',
+            'cafeName'      => Setting::getValue('cafe_name', 'Nindito'),
+            'cafeTagline'   => Setting::getValue('cafe_tagline', 'Coffee & Friends'),
+            'cafeAddress'   => Setting::getValue('cafe_address'),
+            'cafeWhatsapp'  => Setting::getValue('cafe_whatsapp'),
+            'backUrl'       => route('admin.orders.show', $order->id),
+        ]);
+    }
+
     public function setStatus(Request $req, Order $order)
     {
         $data = $req->validate([
@@ -71,3 +90,4 @@ class AdminOrderController extends Controller
         return back()->with('success', 'Pesanan berhasil dihapus.');
     }
 }
+

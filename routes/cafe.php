@@ -13,6 +13,9 @@ Route::middleware(['web'])->group(function () {
     // Note: /t/{token} route is defined in web.php to keep QR URLs at root level
     Route::get('/table/{tableNo}', [TableSessionController::class, 'enterByNumber'])->name('cafe.table.enter.number');
 
+    // Receipt route — outside cafe.table middleware (uses HMAC token for auth)
+    Route::get('/order/{order:order_code}/receipt', [OrderController::class, 'receipt'])->name('cafe.order.receipt');
+
     Route::middleware(['cafe.table'])->group(function () {
         Route::get('/', fn () => redirect()->route('cafe.menu'))->name('cafe.home');
         Route::get('/menu', [MenuController::class, 'index'])->name('cafe.menu');

@@ -139,11 +139,11 @@
                 <div class="space-y-3 text-sm">
                     <div class="flex justify-between gap-3">
                         <span class="text-muted">Metode</span>
-                        <span class="text-gray-900 font-medium">{{ $order->payment->payment_method }}</span>
+                        <span class="text-gray-900 font-medium">{{ $order->payment->payment_method_label }}</span>
                     </div>
                     <div class="flex justify-between gap-3">
                         <span class="text-muted">Status</span>
-                        <span class="font-semibold {{ $order->payment->status === 'SUCCESS' ? 'text-green-700' : 'text-amber-700' }}">{{ $order->payment->status }}</span>
+                        <span class="font-semibold {{ $order->payment->status === 'PAID' ? 'text-green-700' : 'text-amber-700' }}">{{ $order->payment->status }}</span>
                     </div>
                     @if($order->payment->paid_at)
                     <div class="flex justify-between gap-3">
@@ -156,10 +156,10 @@
             @endif
 
             <!-- Print -->
-            <button onclick="window.print()" class="w-full tap-44 py-3 bg-white border border-line text-gray-800 font-semibold ui-btn hover:bg-gray-50 transition-colors flex items-center justify-center gap-2">
+            <a href="{{ route('admin.orders.receipt', $order) }}" target="_blank" class="w-full tap-44 py-3 bg-white border border-line text-gray-800 font-semibold ui-btn hover:bg-gray-50 transition-colors flex items-center justify-center gap-2">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
                 Print Struk
-            </button>
+            </a>
         </aside>
     </div>
 </x-admin-layout>
