@@ -171,7 +171,7 @@
             #receiptModal .receipt-popup { transform:translateY(20px) scale(.97); opacity:0; transition:all .25s cubic-bezier(.4,0,.2,1); }
             #receiptModal.active .receipt-popup { transform:translateY(0) scale(1); opacity:1; }
         </style>
-        <div class="receipt-popup" style="background:#fff;border-radius:20px;width:95%;max-width:460px;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.2);overflow:hidden;">
+        <div class="receipt-popup" style="background:#fff;border-radius:20px;width:95%;max-width:460px;height:85vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.2);overflow:hidden;">
             <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #eee;flex-shrink:0;">
                 <h3 style="font-weight:700;font-size:16px;color:#1a1a1a;margin:0;">📄 Struk Pembelian</h3>
                 <div style="display:flex;gap:8px;">
