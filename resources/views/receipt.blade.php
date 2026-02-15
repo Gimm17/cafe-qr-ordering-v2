@@ -32,6 +32,14 @@
             padding: 28px 24px 20px;
             border-bottom: 2px dashed #e5e5e5;
         }
+        .receipt-logo {
+            width: 64px;
+            height: 64px;
+            object-fit: contain;
+            margin: 0 auto 10px;
+            display: block;
+            border-radius: 8px;
+        }
         .receipt-header .cafe-name {
             font-size: 20px;
             font-weight: 800;
@@ -263,6 +271,21 @@
             .total-amount { font-size: 16px; }
             @page { margin: 3mm; }
         }
+
+        /* ── BW Theme ────────────────────────────────────── */
+        @if(($receiptTheme ?? 'normal') === 'bw')
+        .chip-success,
+        .chip-paid,
+        .chip-method {
+            background: #f5f5f5 !important;
+            color: #333 !important;
+            border: 1px solid #ccc;
+        }
+        .receipt-header .cafe-tagline { color: #555; }
+        .total-amount { color: #000 !important; }
+        .item-note { color: #555 !important; }
+        .receipt-logo { filter: grayscale(1); }
+        @endif
     </style>
 </head>
 <body>
@@ -270,6 +293,9 @@
 <div class="receipt">
     <!-- Header -->
     <div class="receipt-header">
+        @if(($receiptShowLogo ?? '0') === '1' && !empty($receiptLogoUrl))
+            <img src="{{ $receiptLogoUrl }}" alt="Logo" class="receipt-logo">
+        @endif
         <div class="cafe-name">{{ $cafeName }}</div>
         <div class="cafe-tagline">{{ $cafeTagline }}</div>
         <div class="order-code">{{ $order->order_code }}</div>
@@ -277,6 +303,7 @@
     </div>
 
     <!-- Info -->
+    @if(($receiptShowCustomer ?? '1') === '1')
     <div class="receipt-info">
         <div class="info-item">
             <div class="info-label">Customer</div>
@@ -295,15 +322,20 @@
             <div class="info-value">{{ $order->created_at->format('d/m/Y') }}</div>
         </div>
     </div>
+    @endif
 
     <!-- Status -->
+    @if(($receiptShowStatus ?? '1') === '1')
     <div class="receipt-status">
         <span class="status-chip chip-success">✓ {{ $order->order_status === 'SELESAI' ? 'Selesai' : $order->order_status }}</span>
         @if($order->payment_status === 'PAID')
             <span class="status-chip chip-paid">✓ Paid</span>
         @endif
-        <span class="status-chip chip-method">💳 {{ $paymentMethod }}</span>
+        @if(($receiptShowPayment ?? '1') === '1')
+            <span class="status-chip chip-method">💳 {{ $paymentMethod }}</span>
+        @endif
     </div>
+    @endif
 
     <!-- Items -->
     <div class="receipt-items">
@@ -337,11 +369,14 @@
 
     <!-- Footer -->
     <div class="receipt-footer">
-        <div class="thankyou">Terima kasih! 🙏</div>
-        @if($cafeAddress || $cafeWhatsapp)
+        <div class="thankyou">{{ $receiptFooterText ?? 'Terima kasih! 🙏' }}</div>
+        @php
+            $location = $receiptLocation ?? $cafeAddress ?? null;
+        @endphp
+        @if($location || $cafeWhatsapp)
         <div class="footer-info">
-            @if($cafeAddress){{ $cafeAddress }}@endif
-            @if($cafeAddress && $cafeWhatsapp) • @endif
+            @if($location){{ $location }}@endif
+            @if($location && $cafeWhatsapp) • @endif
             @if($cafeWhatsapp)WA: {{ $cafeWhatsapp }}@endif
         </div>
         @endif
