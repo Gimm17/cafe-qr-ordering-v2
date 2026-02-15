@@ -199,6 +199,19 @@
                             class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
                         <span class="text-sm text-gray-700">Tampilkan logo di struk</span>
                     </label>
+
+                    <div class="flex gap-4 mt-2">
+                        <div class="flex-1">
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Ukuran Logo (px)</label>
+                            <input type="number" name="receipt_logo_size" value="{{ $receiptLogoSize ?? '64' }}" min="32" max="200" step="4"
+                                class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                        <div class="flex-1">
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Jarak ke Nama (px)</label>
+                            <input type="number" name="receipt_logo_spacing" value="{{ $receiptLogoSpacing ?? '10' }}" min="0" max="60" step="2"
+                                class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                    </div>
                 </div>
 
                 {{-- Location --}}
