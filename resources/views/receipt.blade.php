@@ -294,7 +294,9 @@
     <!-- Header -->
     <div class="receipt-header">
         @if(($receiptShowLogo ?? '0') === '1' && !empty($receiptLogoUrl))
-            <img src="{{ $receiptLogoUrl }}" alt="Logo" class="receipt-logo">
+            @php $logoSize = intval($receiptLogoSize ?? 64); $logoSpacing = intval($receiptLogoSpacing ?? 10); @endphp
+            <img src="{{ $receiptLogoUrl }}" alt="Logo" class="receipt-logo"
+                 style="width:{{ $logoSize }}px;height:{{ $logoSize }}px;margin-bottom:{{ $logoSpacing }}px;">
         @endif
         <div class="cafe-name">{{ $cafeName }}</div>
         <div class="cafe-tagline">{{ $cafeTagline }}</div>

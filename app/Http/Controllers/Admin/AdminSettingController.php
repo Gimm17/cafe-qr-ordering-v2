@@ -28,6 +28,8 @@ class AdminSettingController extends Controller
             // Receipt settings
             'receiptLogo'           => Setting::getValue('receipt_logo'),
             'receiptShowLogo'       => Setting::getValue('receipt_show_logo', '0'),
+            'receiptLogoSize'       => Setting::getValue('receipt_logo_size', '64'),
+            'receiptLogoSpacing'    => Setting::getValue('receipt_logo_spacing', '10'),
             'receiptCafeLocation'   => Setting::getValue('receipt_cafe_location'),
             'receiptFooterText'     => Setting::getValue('receipt_footer_text', 'Terima kasih! 🙏'),
             'receiptTheme'          => Setting::getValue('receipt_theme', 'normal'),
@@ -88,6 +90,8 @@ class AdminSettingController extends Controller
 
         // Save text settings
         Setting::setValue('receipt_show_logo', $request->boolean('receipt_show_logo') ? '1' : '0');
+        Setting::setValue('receipt_logo_size', $request->input('receipt_logo_size', '64'));
+        Setting::setValue('receipt_logo_spacing', $request->input('receipt_logo_spacing', '10'));
         Setting::setValue('receipt_cafe_location', $request->input('receipt_cafe_location'));
         Setting::setValue('receipt_footer_text', $request->input('receipt_footer_text', 'Terima kasih! 🙏'));
         Setting::setValue('receipt_theme', $request->input('receipt_theme', 'normal'));

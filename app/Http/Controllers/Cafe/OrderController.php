@@ -49,6 +49,8 @@ class OrderController extends Controller
             // Receipt customization
             'receiptLogoUrl'    => ($logo = Setting::getValue('receipt_logo')) ? asset($logo) : null,
             'receiptShowLogo'   => Setting::getValue('receipt_show_logo', '0'),
+            'receiptLogoSize'   => Setting::getValue('receipt_logo_size', '64'),
+            'receiptLogoSpacing'=> Setting::getValue('receipt_logo_spacing', '10'),
             'receiptLocation'   => Setting::getValue('receipt_cafe_location'),
             'receiptFooterText' => Setting::getValue('receipt_footer_text', 'Terima kasih! 🙏'),
             'receiptTheme'      => Setting::getValue('receipt_theme', 'normal'),
