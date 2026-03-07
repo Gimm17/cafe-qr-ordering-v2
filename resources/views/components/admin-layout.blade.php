@@ -36,6 +36,10 @@
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
                     Dashboard
                 </a>
+                <a href="{{ route('admin.pos') }}" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 transition-all {{ request()->routeIs('admin.pos*') ? 'active' : '' }}">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                    Kasir (POS)
+                </a>
                 <a href="{{ route('admin.orders') }}" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 transition-all {{ request()->routeIs('admin.orders*') ? 'active' : '' }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
                     Orders
@@ -126,6 +130,7 @@
                 </div>
                 <nav class="p-3 space-y-1">
                     <a href="{{ route('admin.dashboard') }}" class="sidebar-link block px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">Dashboard</a>
+                    <a href="{{ route('admin.pos') }}" class="sidebar-link block px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 {{ request()->routeIs('admin.pos*') ? 'active' : '' }}">🖥️ Kasir (POS)</a>
                     <a href="{{ route('admin.orders') }}" class="sidebar-link block px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 {{ request()->routeIs('admin.orders*') ? 'active' : '' }}">Orders</a>
                     <a href="{{ route('admin.products') }}" class="sidebar-link block px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 {{ request()->routeIs('admin.products*') ? 'active' : '' }}">Produk</a>
                     <a href="{{ route('admin.categories') }}" class="sidebar-link block px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 {{ request()->routeIs('admin.categories*') ? 'active' : '' }}">Kategori</a>
@@ -257,6 +262,28 @@
                 if (result.isConfirmed) document.getElementById(formId).submit();
             });
         }
+
+        /**
+         * Konfirmasi toggle status (aktif/nonaktif).
+         * Dipakai untuk semua tombol toggle di admin panel.
+         * @param {HTMLFormElement} form  - Form element to submit on confirm
+         * @param {string} namaItem      - Nama item yang di-toggle
+         * @param {string} statusBaru    - 'Aktifkan' atau 'Nonaktifkan'
+         */
+        function confirmToggle(form, namaItem, statusBaru) {
+            Swal.fire({
+                title: `${statusBaru} ${namaItem}?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#1d4ed8',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Ya',
+                cancelButtonText: 'Batal',
+            }).then((result) => {
+                if (result.isConfirmed) form.submit();
+            });
+        }
+
     </script>
 
     {{ $scripts ?? '' }}

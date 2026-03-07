@@ -116,8 +116,8 @@
             </div>
         </div>
 
-        <!-- Download Struk Button -->
-        @if($order->order_status === 'SELESAI' && $order->payment_status === 'PAID')
+        {{-- Download Struk Button — muncul segera saat SELESAI --}}
+        @if($order->order_status === 'SELESAI')
         <div class="mb-4" id="downloadReceiptSection">
             <button onclick="openReceiptModal()"
                class="w-full flex items-center justify-center gap-2 tap-44 px-5 py-3 bg-primary-600 text-white font-semibold ui-btn hover:bg-primary-700 transition-colors">
@@ -362,7 +362,7 @@
         bindStarRatings();
     </script>
 
-    @if($order->order_status === 'SELESAI' && $order->payment_status === 'PAID')
+    @if($order->order_status === 'SELESAI')
     <script>
     function openReceiptModal() {
         const modal = document.getElementById('receiptModal');
@@ -395,8 +395,8 @@
     @endif
     </x-slot:scripts>
 
-    {{-- Receipt Modal --}}
-    @if($order->order_status === 'SELESAI' && $order->payment_status === 'PAID')
+    {{-- Receipt Modal — tersedia segera saat SELESAI --}}
+    @if($order->order_status === 'SELESAI')
     <div id="receiptModal" style="display:none;position:fixed;inset:0;z-index:9999;align-items:center;justify-content:center;backdrop-filter:blur(4px);" onclick="if(event.target===this)closeReceiptModal()">
         <style>
             #receiptModal { background:rgba(0,0,0,0); transition:background .25s; }

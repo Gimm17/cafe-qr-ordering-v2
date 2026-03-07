@@ -68,8 +68,26 @@
     <script src="{{ $snapUrl }}" data-client-key="{{ $clientKey }}"></script>
 
     <script>
-        const SNAP_TOKEN = @json($snapToken);
-        const ORDER_URL = @json(route('cafe.order.show', ['order' => $order->order_code]));
+        const SNAP_TOKEN  = @json($snapToken);
+        const ORDER_URL   = @json(route('cafe.order.show', ['order' => $order->order_code]));
+        const VERIFY_URL  = @json(route('cafe.pay.verify', ['order' => $order->order_code]));
+        const CSRF_TOKEN  = @json(csrf_token());
+
+        // After Snap popup closes (success or pending), trigger server-side verify
+        // Server calls Midtrans API and updates DB. Browser only triggers.
+        function verifyAndRedirect(delay = 500) {
+            fetch(VERIFY_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': CSRF_TOKEN,
+                    'Accept': 'application/json',
+                },
+            })
+            .then(res => res.json())
+            .then(() => setTimeout(() => window.location.href = ORDER_URL, delay))
+            .catch(() => setTimeout(() => window.location.href = ORDER_URL, delay));
+        }
 
         // Auto-trigger Snap payment popup on load
         document.addEventListener('DOMContentLoaded', function() {
@@ -83,12 +101,12 @@
 
             window.snap.pay(SNAP_TOKEN, {
                 onSuccess: function(result) {
-                    showStatus('success', 'Pembayaran Berhasil! ✅');
-                    setTimeout(() => window.location.href = ORDER_URL, 1500);
+                    showStatus('success', 'Pembayaran Berhasil! ✅ Mengecek status...');
+                    verifyAndRedirect(500);
                 },
                 onPending: function(result) {
                     showStatus('pending', 'Menunggu pembayaran...');
-                    setTimeout(() => window.location.href = ORDER_URL, 2000);
+                    verifyAndRedirect(2000);
                 },
                 onError: function(result) {
                     showStatus('error', 'Pembayaran gagal. Silakan coba lagi.');
@@ -100,6 +118,7 @@
                 }
             });
         }
+
 
         function showStatus(type, message) {
             const colors = {

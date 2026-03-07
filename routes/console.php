@@ -11,3 +11,7 @@ Artisan::command('inspire', function () {
 // Schedule cleanup for pending orders older than 10 minutes
 // Run every minute
 Schedule::command('orders:cleanup-pending --minutes=10')->everyFiveMinutes();
+
+// Cek status payment pending ke Midtrans tiap 5 menit (jalur ke-3 — multi-project fallback)
+Schedule::command('payments:check-pending')->everyFiveMinutes();
+

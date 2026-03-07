@@ -168,71 +168,83 @@
         setInterval(updateTimers, 1000);
         updateTimers();
 
-        // ── Auto-refresh: poll every 15 seconds ──
-        let lastOrderCount = {{ $orders->count() }};
-        const REFRESH_INTERVAL = 15000;
+        // ── Real-time Polling: ETag + Exponential Backoff + Visibility API ──
+        let lastOrderCount  = {{ $orders->count() }}; // jumlah awal dari server
+        const POLL_URL      = @json(route('admin.orders.json'));
 
-        async function autoRefreshOrders() {
-            if (document.hidden) return; // skip when tab not visible
+        let pollEtag        = null;
+        let pollInterval    = 10000; // mulai 10 detik
+        let pollFailCount   = 0;
+        const POLL_MAX_INT  = 120000; // max 2 menit
 
-            try {
-                const res = await fetch(window.location.href, {
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        function pollOrders() {
+            const headers = { 'Accept': 'application/json' };
+            if (pollEtag) headers['If-None-Match'] = pollEtag;
+
+            fetch(POLL_URL, { headers })
+                .then(res => {
+                    pollEtag = res.headers.get('ETag') || pollEtag;
+                    pollFailCount = 0;
+                    pollInterval  = 10000; // reset ke normal setelah sukses
+
+                    if (res.status === 304) return; // tidak ada perubahan — skip
+                    if (!res.ok) throw new Error('Server error ' + res.status);
+
+                    return res.json().then(data => {
+                        // Cek apakah ada order baru
+                        if (data.length > lastOrderCount) {
+                            const diff = data.length - lastOrderCount;
+                            // Notifikasi browser
+                            if (Notification.permission === 'granted') {
+                                new Notification('🔔 Pesanan Baru!', {
+                                    body: `${diff} pesanan baru masuk`,
+                                    icon: '/assets/brand/logo.png'
+                                });
+                            }
+                            // Play notification sound
+                            try {
+                                @php
+                                    $customPath = public_path('custom_notification.mp3');
+                                    $soundSrc = file_exists($customPath)
+                                        ? asset('custom_notification.mp3')
+                                        : 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbsGckGFqIw+DfuHEoJUyAvN3nxII5MWCE0O/dq1s3OHaV3/DexnlHOm+L0/Hhz5NbR2yFyerhz5leUHGLz/Dlz5tmWXiOz/Dlz5tm';
+                                @endphp
+                                const audio = new Audio("{!! $soundSrc !!}");
+                                audio.volume = 0.5;
+                                audio.play().catch(e => console.log('Audio play failed:', e));
+                            } catch(e) {}
+                        }
+                        lastOrderCount = data.length;
+                        console.log('[Poll] Orders updated:', data.length);
+                    });
+                })
+                .catch(() => {
+                    pollFailCount++;
+                    // Exponential backoff: 10s → 20s → 40s → max 2 menit
+                    pollInterval = Math.min(pollInterval * 2, POLL_MAX_INT);
+                    console.warn('[Poll] Error, backoff to', pollInterval / 1000 + 's');
+                })
+                .finally(() => {
+                    setTimeout(pollOrders, pollInterval);
                 });
-                if (!res.ok) return;
-
-                const html = await res.text();
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-
-                // Replace kanban board content
-                const newBoard = doc.querySelector('.grid.grid-cols-1.md\\:grid-cols-2');
-                const oldBoard = document.querySelector('.grid.grid-cols-1.md\\:grid-cols-2');
-                if (newBoard && oldBoard) {
-                    oldBoard.innerHTML = newBoard.innerHTML;
-                    // Re-attach timer updates
-                    updateTimers();
-                }
-
-                // Check for new orders and notify
-                const newCountEls = doc.querySelectorAll('[data-step]');
-                // Simple: count all order cards in the new HTML
-                const newCards = doc.querySelectorAll('.ui-card-flat[onclick]');
-                if (newCards.length > lastOrderCount) {
-                    const diff = newCards.length - lastOrderCount;
-                    // Show browser notification
-                    if (Notification.permission === 'granted') {
-                        new Notification('🔔 Pesanan Baru!', {
-                            body: `${diff} pesanan baru masuk`,
-                            icon: '/assets/brand/logo.png'
-                        });
-                    }
-                    // Play notification sound
-                    try {
-                        @php
-                            $customPath = public_path('custom_notification.mp3');
-                            $soundSrc = file_exists($customPath)
-                                ? asset('custom_notification.mp3')
-                                : 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbsGckGFqIw+DfuHEoJUyAvN3nxII5MWCE0O/dq1s3OHaV3/DexnlHOm+L0/Hhz5NbR2yFyerhz5leUHGLz/Dlz5tmWXiOz/Dlz5tm';
-                        @endphp
-                        const audio = new Audio("{!! $soundSrc !!}");
-                        audio.volume = 0.5;
-                        audio.play().catch(e => console.log('Audio play failed:', e));
-                    } catch(e) {}
-                }
-                lastOrderCount = newCards.length;
-
-            } catch (e) {
-                console.warn('Auto-refresh failed:', e);
-            }
         }
 
-        setInterval(autoRefreshOrders, REFRESH_INTERVAL);
+        // Mulai polling
+        pollOrders();
+
+        // Stop saat tab tidak aktif, resume saat aktif kembali
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                pollInterval = 10000; // reset interval
+                pollOrders();
+            }
+        });
 
         // Request notification permission
         if ('Notification' in window && Notification.permission === 'default') {
             Notification.requestPermission();
         }
+
     </script>
 </x-admin-layout>
 

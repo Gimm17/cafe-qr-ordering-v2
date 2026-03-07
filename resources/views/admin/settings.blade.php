@@ -283,5 +283,87 @@
                 </div>
             </form>
         </div>
+        {{-- ═══ POS / Kasir Settings ═══ --}}
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 md:col-span-2">
+            <h2 class="text-lg font-bold text-gray-900 mb-1 flex items-center gap-2">
+                🖥️ Pengaturan Kasir (POS)
+            </h2>
+            <p class="text-sm text-gray-500 mb-5">Konfigurasi fitur Point of Sale untuk transaksi walk-in.</p>
+
+            <form action="{{ route('admin.settings.pos') }}" method="POST" enctype="multipart/form-data" class="space-y-5">
+                @csrf
+
+                {{-- Toggle: Uang Tunai & Kembalian --}}
+                <label class="flex items-start gap-3 cursor-pointer">
+                    <input type="checkbox" name="pos_cash_change_enabled" value="1" {{ ($posCashChangeEnabled ?? '1') === '1' ? 'checked' : '' }}
+                        class="mt-0.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                    <div>
+                        <span class="text-sm font-medium text-gray-900">Tampilkan Kolom Uang Tunai & Kembalian</span>
+                        <p class="text-xs text-gray-500">Kasir bisa input uang diterima dan sistem hitung otomatis kembalian</p>
+                    </div>
+                </label>
+
+                {{-- Toggle: Audio TTS --}}
+                <label class="flex items-start gap-3 cursor-pointer">
+                    <input type="checkbox" name="pos_audio_enabled" value="1" {{ ($posAudioEnabled ?? '1') === '1' ? 'checked' : '' }}
+                        class="mt-0.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                    <div>
+                        <span class="text-sm font-medium text-gray-900">Audio Notifikasi TTS saat Pembayaran Berhasil</span>
+                        <p class="text-xs text-gray-500">Otomatis bacakan nominal (mis. "Lima puluh ribu rupiah") saat QRIS / Tunai berhasil</p>
+                    </div>
+                </label>
+
+                {{-- QRIS Mode --}}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Mode QRIS</label>
+                    <div class="flex gap-3">
+                        <label class="flex-1 cursor-pointer">
+                            <input type="radio" name="pos_qris_mode" value="external"
+                                {{ ($posQrisMode ?? 'external') === 'external' ? 'checked' : '' }} class="peer sr-only">
+                            <div class="peer-checked:ring-2 peer-checked:ring-indigo-500 peer-checked:border-indigo-500 border border-gray-200 rounded-xl p-4 hover:bg-gray-50 transition-all">
+                                <div class="text-xl mb-1">🖼️</div>
+                                <div class="text-sm font-semibold text-gray-900">Gambar Statis</div>
+                                <div class="text-xs text-gray-500">Upload 1 gambar QRIS untuk semua transaksi</div>
+                            </div>
+                        </label>
+                        <label class="flex-1 cursor-pointer">
+                            <input type="radio" name="pos_qris_mode" value="midtrans"
+                                {{ ($posQrisMode ?? 'external') === 'midtrans' ? 'checked' : '' }} class="peer sr-only">
+                            <div class="peer-checked:ring-2 peer-checked:ring-indigo-500 peer-checked:border-indigo-500 border border-gray-200 rounded-xl p-4 hover:bg-gray-50 transition-all">
+                                <div class="text-xl mb-1">💳</div>
+                                <div class="text-sm font-semibold text-gray-900">Midtrans Dynamic</div>
+                                <div class="text-xs text-gray-500">Generate QRIS dinamis via Midtrans per transaksi</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                {{-- Upload QRIS Image --}}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Gambar QRIS Statis</label>
+                    @if($posQrisImage ?? null)
+                    <div class="flex items-center gap-4 mb-3">
+                        <img src="{{ asset($posQrisImage) }}" alt="QRIS" class="w-24 h-24 object-contain border rounded-lg bg-gray-50 p-1">
+                        <span class="text-xs text-gray-500">Gambar QRIS saat ini</span>
+                    </div>
+                    @endif
+                    <input type="file" name="pos_qris_image" accept=".png,.jpg,.jpeg,.webp"
+                        class="block w-full text-sm text-gray-500
+                        file:mr-4 file:py-2 file:px-4
+                        file:rounded-full file:border-0
+                        file:text-sm file:font-semibold
+                        file:bg-indigo-50 file:text-indigo-700
+                        hover:file:bg-indigo-100
+                        cursor-pointer border border-gray-300 rounded-lg bg-white">
+                    <p class="text-xs text-gray-500 mt-1">Maks 2MB. Format: PNG, JPG, WEBP. Kosongkan jika tidak ingin mengganti.</p>
+                </div>
+
+                <div class="flex justify-end">
+                    <button type="submit" class="px-5 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium transition-colors">
+                        Simpan Pengaturan Kasir
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </x-admin-layout>

@@ -71,7 +71,7 @@ class MidtransClient
                 'Accept: application/json',
                 'Authorization: Basic ' . base64_encode($serverKey . ':'),
             ],
-            CURLOPT_SSL_VERIFYPEER => true,
+            CURLOPT_SSL_VERIFYPEER => app()->environment('production'),
             CURLOPT_TIMEOUT        => 15,
         ]);
 
@@ -132,7 +132,7 @@ class MidtransClient
                 'Accept: application/json',
                 'Authorization: Basic ' . base64_encode($cfg['server_key'] . ':'),
             ],
-            CURLOPT_SSL_VERIFYPEER => true,
+            CURLOPT_SSL_VERIFYPEER => app()->environment('production'),
             CURLOPT_TIMEOUT        => 10,
         ]);
 

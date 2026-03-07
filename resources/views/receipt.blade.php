@@ -354,9 +354,35 @@
 
     <!-- Payment Method -->
     @if(($receiptShowPayment ?? '1') === '1')
-    <div style="margin:0 24px;padding:10px 0;border-top:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center;">
-        <span style="font-size:12px;color:#888;">Metode Pembayaran</span>
-        <span style="font-size:13px;font-weight:600;color:#333;">💳 {{ $paymentMethod }}</span>
+    <div style="margin:0 24px;padding:10px 0;border-top:1px solid #f0f0f0;">
+        @php
+            $payGateway  = strtolower($order->payment?->gateway ?? '');
+            $isCash      = in_array($payGateway, ['cash']);
+            $isQris      = in_array($payGateway, ['qris']);
+            $isPosOrder  = ($order->order_source ?? '') === 'POS';
+            $payLabel    = $isCash ? '💵 Tunai' : ($isQris ? '📱 QRIS' : '💳 ' . ($paymentMethod ?? 'Midtrans'));
+        @endphp
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:12px;color:#888;">Metode Pembayaran</span>
+            <span style="font-size:13px;font-weight:600;color:#333;">{{ $payLabel }}</span>
+        </div>
+        @if($isCash && $order->payment?->cash_received)
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">
+            <span style="font-size:12px;color:#888;">Uang Diterima</span>
+            <span style="font-size:12px;font-weight:600;color:#333;">Rp {{ number_format($order->payment->cash_received, 0, ',', '.') }}</span>
+        </div>
+        @if($order->payment?->cash_change !== null)
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">
+            <span style="font-size:12px;color:#888;">Kembalian</span>
+            <span style="font-size:12px;font-weight:700;color:#059669;">Rp {{ number_format($order->payment->cash_change, 0, ',', '.') }}</span>
+        </div>
+        @endif
+        @endif
+        @if($isPosOrder)
+        <div style="margin-top:8px;">
+            <span style="display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;background:#eff6ff;color:#1e40af;font-size:11px;font-weight:600;">🖥️ Order via Kasir</span>
+        </div>
+        @endif
     </div>
     @endif
 

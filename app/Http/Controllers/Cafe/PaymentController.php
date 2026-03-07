@@ -6,12 +6,16 @@ use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Services\Midtrans\MidtransClient;
+use App\Services\PaymentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class PaymentController extends Controller
 {
-    public function __construct(private MidtransClient $midtrans) {}
+    public function __construct(
+        private MidtransClient $midtrans,
+        private PaymentService $paymentService,
+    ) {}
 
     /**
      * Show the custom in-app payment page with Midtrans Snap.
@@ -84,5 +88,16 @@ class PaymentController extends Controller
         }
 
         return response()->json(['token' => $snap['token']]);
+    }
+
+    /**
+     * AJAX endpoint: verify payment status from Midtrans API.
+     * Browser calls this after Snap onSuccess/onPending — server checks Midtrans, updates DB.
+     * Browser only triggers, does NOT determine the status.
+     */
+    public function verifyPayment(Order $order)
+    {
+        $status = $this->paymentService->syncPaymentStatus($order);
+        return response()->json(['status' => $status]);
     }
 }

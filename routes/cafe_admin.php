@@ -9,6 +9,8 @@ use App\Http\Controllers\Admin\AdminTableController;
 use App\Http\Controllers\Admin\AdminFeedbackController;
 use App\Http\Controllers\Admin\AdminReportController;
 use App\Http\Controllers\Admin\AdminModifierController;
+use App\Http\Controllers\Admin\AdminPosController;
+use App\Http\Controllers\Admin\AdminSettingController;
 
 Route::prefix('admin')->group(function () {
     Route::get('/login', [AdminAuthController::class, 'show'])->name('admin.login');
@@ -20,10 +22,18 @@ Route::prefix('admin')->group(function () {
 
         // Orders
         Route::get('/orders', [AdminOrderController::class, 'index'])->name('admin.orders');
+        Route::get('/orders/poll', [AdminOrderController::class, 'ordersJson'])->name('admin.orders.json');
         Route::get('/orders/{order}', [AdminOrderController::class, 'show'])->name('admin.orders.show');
         Route::get('/orders/{order}/receipt', [AdminOrderController::class, 'receipt'])->name('admin.orders.receipt');
         Route::post('/orders/{order}/status', [AdminOrderController::class, 'setStatus'])->name('admin.orders.status');
         Route::delete('/orders/{order}', [AdminOrderController::class, 'destroy'])->name('admin.orders.delete');
+
+        // POS / Kasir
+        Route::get('/pos', [AdminPosController::class, 'index'])->name('admin.pos');
+        Route::get('/pos/products', [AdminPosController::class, 'products'])->name('admin.pos.products');
+        Route::post('/pos/order', [AdminPosController::class, 'store'])->name('admin.pos.order');
+        Route::post('/pos/confirm-qris/{order}', [AdminPosController::class, 'confirmQris'])->name('admin.pos.confirm-qris');
+        Route::get('/pos/check-payment/{order}', [AdminPosController::class, 'checkPayment'])->name('admin.pos.check-payment');
 
         // Menu
         Route::get('/menu', [AdminMenuController::class, 'index'])->name('admin.menu');
@@ -72,6 +82,7 @@ Route::prefix('admin')->group(function () {
         Route::post('/settings/close-order', [\App\Http\Controllers\Admin\AdminSettingController::class, 'updateCloseOrder'])->name('admin.settings.close-order');
         Route::post('/settings/toggle-cafe', [\App\Http\Controllers\Admin\AdminSettingController::class, 'toggleCafe'])->name('admin.settings.toggle-cafe');
         Route::post('/settings/receipt', [\App\Http\Controllers\Admin\AdminSettingController::class, 'updateReceipt'])->name('admin.settings.receipt');
+        Route::post('/settings/pos', [AdminSettingController::class, 'updatePos'])->name('admin.settings.pos');
 
         // Banners
         Route::get('/banners', [\App\Http\Controllers\Admin\AdminBannerController::class, 'index'])->name('admin.banners');

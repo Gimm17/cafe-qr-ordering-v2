@@ -11,11 +11,13 @@ class Payment extends Model
 {
     protected $fillable = [
         'order_id','gateway','status','gateway_session_id','gateway_url',
-        'gateway_trx_id','raw_response'
+        'gateway_trx_id','raw_response','cash_received','cash_change'
     ];
 
     protected $casts = [
-        'raw_response' => 'array',
+        'raw_response'  => 'array',
+        'cash_received' => 'integer',
+        'cash_change'   => 'integer',
     ];
 
     public function order(): BelongsTo

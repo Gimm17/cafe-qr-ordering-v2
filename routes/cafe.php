@@ -31,6 +31,8 @@ Route::middleware(['web'])->group(function () {
 
         Route::get('/pay/{order:order_code}', [PaymentController::class, 'pay'])->name('cafe.pay');
         Route::post('/pay/{order:order_code}/token', [PaymentController::class, 'getSnapToken'])->name('cafe.pay.token');
+        Route::post('/pay/{order:order_code}/verify', [PaymentController::class, 'verifyPayment'])->name('cafe.pay.verify');
+
 
         Route::get('/order/{order:order_code}', [OrderController::class, 'show'])->name('cafe.order.show');
         Route::get('/order/{order:order_code}/status', [OrderController::class, 'statusJson'])->middleware('throttle:60,1')->name('cafe.order.status');

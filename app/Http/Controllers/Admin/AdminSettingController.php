@@ -36,6 +36,11 @@ class AdminSettingController extends Controller
             'receiptShowStatus'     => Setting::getValue('receipt_show_status_badges', '1'),
             'receiptShowCustomer'   => Setting::getValue('receipt_show_customer_info', '1'),
             'receiptShowPayment'    => Setting::getValue('receipt_show_payment_method', '1'),
+            // POS settings
+            'posCashChangeEnabled'  => Setting::getValue('pos_cash_change_enabled', '1'),
+            'posAudioEnabled'       => Setting::getValue('pos_audio_enabled', '1'),
+            'posQrisMode'           => Setting::getValue('pos_qris_mode', 'external'),
+            'posQrisImage'          => Setting::getValue('pos_qris_image'),
         ]);
     }
 
@@ -133,5 +138,37 @@ class AdminSettingController extends Controller
 
         $statusText = $currentStatus ? 'DITUTUP' : 'DIBUKA';
         return back()->with('success', "Cafe berhasil {$statusText}!");
+    }
+
+    /**
+     * Simpan pengaturan POS / Kasir.
+     */
+    public function updatePos(Request $request)
+    {
+        $request->validate([
+            'pos_qris_image' => ['nullable', 'image', 'mimes:png,jpg,jpeg,webp', 'max:2048'],
+            'pos_qris_mode'  => ['nullable', 'in:external,midtrans'],
+        ]);
+
+        Setting::setValue('pos_cash_change_enabled',
+            $request->has('pos_cash_change_enabled') ? '1' : '0');
+        Setting::setValue('pos_audio_enabled',
+            $request->has('pos_audio_enabled') ? '1' : '0');
+        Setting::setValue('pos_qris_mode',
+            $request->input('pos_qris_mode', 'external'));
+
+        if ($request->hasFile('pos_qris_image')) {
+            // Hapus gambar lama jika ada
+            $oldImage = Setting::getValue('pos_qris_image');
+            if ($oldImage && File::exists(public_path($oldImage))) {
+                File::delete(public_path($oldImage));
+            }
+            $file     = $request->file('pos_qris_image');
+            $filename = 'pos_qris_' . time() . '.' . $file->getClientOriginalExtension();
+            $file->move(public_path('uploads'), $filename);
+            Setting::setValue('pos_qris_image', 'uploads/' . $filename);
+        }
+
+        return back()->with('success', 'Pengaturan Kasir (POS) berhasil disimpan!');
     }
 }
