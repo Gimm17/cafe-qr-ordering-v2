@@ -3,6 +3,7 @@
 {{-- ─── Styles ─────────────────────────────────────────── --}}
 <style>
 .pos-grid { display: grid; grid-template-columns: 1fr 400px; gap: 0; height: calc(100vh - 64px); overflow: hidden; }
+.sb-collapsed .pos-grid { grid-template-columns: 1fr 480px; }
 @media(max-width:1024px){ .pos-grid { grid-template-columns: 1fr; height:auto; overflow:auto; } }
 
 /* LEFT PANEL */
@@ -11,24 +12,28 @@
 
 /* Product cards */
 .product-card {
-    background:#fff; border-radius:12px; overflow:hidden; cursor:pointer;
+    background:#fff; border-radius:10px; overflow:hidden; cursor:pointer;
     border:2px solid transparent; transition:all .15s;
     display:flex; flex-direction:column;
 }
 .product-card:hover { border-color:#6366f1; box-shadow:0 2px 12px rgba(99,102,241,.15); }
 .product-card img { width:100%; aspect-ratio:4/3; object-fit:cover; }
-.product-card .pc-body { padding:10px 12px; flex:1; }
-.product-card .pc-name { font-weight:600; font-size:13px; color:#1a1a1a; line-height:1.3; }
-.product-card .pc-price { font-size:12px; color:#6366f1; font-weight:700; margin-top:4px; }
-.product-card .pc-mod { font-size:10px; color:#888; margin-top:2px; }
-.product-card .pc-add { margin:0 12px 12px; background:#6366f1; color:#fff; border:none; border-radius:8px; padding:7px; font-size:12px; font-weight:600; cursor:pointer; width:calc(100% - 24px); }
+.product-card .pc-body { padding:7px 10px; flex:1; }
+.product-card .pc-name { font-weight:600; font-size:12px; color:#1a1a1a; line-height:1.3; }
+.product-card .pc-price { font-size:11px; color:#6366f1; font-weight:700; margin-top:3px; }
+.product-card .pc-mod { font-size:9px; color:#888; margin-top:2px; }
+.product-card .pc-add { margin:0 8px 8px; background:#6366f1; color:#fff; border:none; border-radius:7px; padding:5px; font-size:11px; font-weight:600; cursor:pointer; width:calc(100% - 16px); }
 .product-card .pc-add:hover { background:#4f46e5; }
 
 /* RIGHT PANEL */
 .pos-right { display:flex; flex-direction:column; background:#fff; border-left:1px solid #e5e7eb; overflow:hidden; }
-.pos-right-head { padding:16px; border-bottom:1px solid #f0f0f0; flex-shrink:0; }
-.pos-right-body { flex:1; overflow-y:auto; padding:12px 16px; }
-.pos-right-foot { padding:12px 16px 16px; border-top:1px solid #f0f0f0; flex-shrink:0; background:#fff; }
+.pos-right-head { padding:10px 14px; border-bottom:1px solid #f0f0f0; flex-shrink:0; }
+.pos-right-body { flex:1; overflow-y:auto; padding:10px 16px; min-height:0; }
+.pos-right-foot { border-top:1px solid #f0f0f0; flex-shrink:0; background:#fff; }
+.pos-foot-totals { padding:8px 14px 6px; }
+.pos-foot-payment { padding:0 14px 8px; }
+.pos-foot-numpad { padding:0 14px 8px; border-top:1px dashed #f0f0f0; }
+.pos-foot-action { padding:0 14px 12px; }
 
 /* Cart item */
 .cart-item { padding:10px 0; border-bottom:1px solid #f5f5f5; }
@@ -48,18 +53,45 @@
 .note-input:focus { border-color:#6366f1; }
 
 /* Empty cart */
-#emptyCart { text-align:center; padding:40px 20px; color:#bbb; }
-#emptyCart svg { width:48px; height:48px; margin:0 auto 12px; opacity:.4; }
+#emptyCart { text-align:center; padding:30px 20px; color:#bbb; }
+#emptyCart svg { width:40px; height:40px; margin:0 auto 10px; opacity:.4; }
 
 /* Payment toggle */
-.pay-toggle { display:flex; gap:8px; margin-bottom:12px; }
-.pay-btn { flex:1; padding:10px; border:2px solid #e5e7eb; border-radius:10px; background:#fff; font-size:13px; font-weight:600; cursor:pointer; color:#555; transition:all .12s; }
+.pay-toggle { display:flex; gap:6px; margin-bottom:0; }
+.pay-btn { flex:1; padding:7px 4px; border:2px solid #e5e7eb; border-radius:8px; background:#fff; font-size:12px; font-weight:600; cursor:pointer; color:#555; transition:all .12s; }
 .pay-btn.active-cash { border-color:#10b981; background:#ecfdf5; color:#059669; }
 .pay-btn.active-qris { border-color:#8b5cf6; background:#f5f3ff; color:#7c3aed; }
 
 /* Kembalian */
 .kembalian-ok { color:#10b981; font-weight:700; }
 .kembalian-err { color:#ef4444; font-weight:700; }
+
+/* Numpad */
+.numpad-display {
+    background:#f9fafb; border:1.5px solid #e5e7eb; border-radius:8px;
+    padding:5px 10px; font-size:16px; font-weight:700; text-align:right;
+    color:#1a1a1a; min-height:34px; letter-spacing:.5px; margin-bottom:5px;
+    transition:border-color .15s;
+}
+.numpad-display.filled { border-color:#6366f1; color:#6366f1; }
+.numpad-shortcuts { display:flex; gap:4px; flex-wrap:wrap; margin-bottom:5px; }
+.numpad-shortcut {
+    flex:1; min-width:48px; padding:4px 2px; font-size:10px; font-weight:700;
+    color:#6366f1; background:#eef2ff; border:none; border-radius:6px; cursor:pointer;
+    text-align:center; transition:all .1s;
+}
+.numpad-shortcut:hover { background:#c7d2fe; }
+.numpad-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:4px; }
+.np-btn {
+    padding:8px 4px; font-size:14px; font-weight:700; color:#374151;
+    background:#f3f4f6; border:none; border-radius:8px; cursor:pointer;
+    transition:all .1s; text-align:center;
+}
+.np-btn:hover { background:#e5e7eb; }
+.np-btn:active { transform:scale(.94); }
+.np-btn.np-0 { grid-column:span 2; }
+.np-btn.np-del { background:#fee2e2; color:#ef4444; }
+.np-btn.np-del:hover { background:#fecaca; }
 
 /* Category tabs */
 .cat-tabs { display:flex; gap:6px; padding:12px 16px; overflow-x:auto; border-bottom:1px solid #f0f0f0; flex-shrink:0; }
@@ -75,8 +107,7 @@
 .search-bar svg { position:absolute; left:28px; top:22px; width:16px; height:16px; color:#9ca3af; }
 
 /* Totals row */
-.total-row { display:flex; justify-content:space-between; align-items:center; padding:3px 0; }
-.total-row.grand { font-weight:800; font-size:18px; color:#1a1a1a; padding-top:8px; border-top:2px dashed #e5e7eb; margin-top:4px; }
+.total-row.grand { display:flex; justify-content:space-between; align-items:center; font-weight:800; font-size:15px; color:#1a1a1a; }
 
 /* Modal base */
 .pos-modal { display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,.5); backdrop-filter:blur(4px); justify-content:center; align-items:center; padding:16px; }
@@ -114,12 +145,12 @@
 .order-code-display { font-size:22px; font-weight:900; letter-spacing:1px; color:#1a1a1a; text-align:center; margin:8px 0; }
 
 /* Proses btn */
-.btn-proses { width:100%; padding:14px; background:linear-gradient(135deg,#6366f1,#8b5cf6); color:#fff; border:none; border-radius:14px; font-size:15px; font-weight:700; cursor:pointer; margin-top:12px; display:flex; align-items:center; justify-content:center; gap:8px; transition:all .15s; }
+.btn-proses { width:100%; padding:11px; background:linear-gradient(135deg,#6366f1,#8b5cf6); color:#fff; border:none; border-radius:12px; font-size:14px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:all .15s; }
 .btn-proses:hover { transform:translateY(-1px); box-shadow:0 4px 20px rgba(99,102,241,.4); }
 .btn-proses:disabled { opacity:.6; cursor:not-allowed; transform:none; }
 
 /* Fulfillment pills */
-.ful-btn { flex:1; padding:7px; border:1px solid #e5e7eb; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; background:#fff; color:#555; }
+.ful-btn { flex:1; padding:5px 4px; border:1px solid #e5e7eb; border-radius:7px; font-size:11px; font-weight:600; cursor:pointer; background:#fff; color:#555; }
 .ful-btn.active { border-color:#6366f1; background:#eef2ff; color:#4f46e5; }
 </style>
 
@@ -144,7 +175,7 @@
 
         {{-- Product Grid --}}
         <div class="pos-left-body">
-            <div id="productGrid" class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+            <div id="productGrid" class="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-2">
                 @foreach($products as $p)
                 <div class="product-card" data-id="{{ $p->id }}" data-cat="{{ $p->category_id }}" data-name="{{ strtolower($p->name) }}" onclick="addToCart({{ $p->id }})">
                     @if($p->image_url)
@@ -173,30 +204,26 @@
          PANEL KANAN — Order Panel
     ═══════════════════════════════════════════════── --}}
     <div class="pos-right">
-        {{-- Header --}}
+        {{-- Header: compact --}}
         <div class="pos-right-head">
-            <h2 style="font-size:16px;font-weight:800;color:#1a1a1a;margin-bottom:10px;">🧾 Order Kasir</h2>
-
-            {{-- Customer name --}}
+            <h2 style="font-size:12px;font-weight:800;color:#1a1a1a;margin-bottom:5px;">🧾 Order Kasir</h2>
             <input type="text" id="customer_name" placeholder="Nama Customer *" required
-                   style="width:100%;padding:8px 12px;border:1px solid #e5e7eb;border-radius:9px;font-size:13px;margin-bottom:8px;outline:none;">
-
-            {{-- Table & Fulfillment --}}
-            <div style="display:flex;gap:8px;margin-bottom:0;">
-                <select id="table_id" style="flex:1;padding:8px 10px;border:1px solid #e5e7eb;border-radius:9px;font-size:13px;outline:none;color:#555;">
+                   style="width:100%;padding:5px 10px;border:1px solid #e5e7eb;border-radius:8px;font-size:12px;margin-bottom:5px;outline:none;">
+            <div style="display:flex;gap:5px;">
+                <select id="table_id" style="flex:1;padding:5px 8px;border:1px solid #e5e7eb;border-radius:8px;font-size:11px;outline:none;color:#555;">
                     <option value="">Tanpa Meja</option>
                     @foreach($tables as $t)
                     <option value="{{ $t->id }}">Meja {{ $t->table_no }}</option>
                     @endforeach
                 </select>
-                <div style="display:flex;gap:4px;flex:1;">
+                <div style="display:flex;gap:3px;">
                     <button class="ful-btn active" id="fulDineIn" onclick="setFulfillment('DINE_IN')">🍽 Dine In</button>
                     <button class="ful-btn" id="fulPickup" onclick="setFulfillment('PICKUP')">🥡 Takeaway</button>
                 </div>
             </div>
         </div>
 
-        {{-- Cart --}}
+        {{-- Cart body: scrollable --}}
         <div class="pos-right-body" id="cartBody">
             <div id="emptyCart">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
@@ -206,45 +233,59 @@
             <div id="cartItems"></div>
         </div>
 
-        {{-- Footer: totals + payment --}}
+        {{-- Footer --}}
         <div class="pos-right-foot">
-            <div id="totalSection" class="hidden">
-                <div class="total-row">
-                    <span style="font-size:13px;color:#888;">Subtotal</span>
-                    <span id="subtotalDisplay" style="font-size:13px;font-weight:600;">Rp 0</span>
-                </div>
+
+            {{-- Grand Total only (no subtotal) --}}
+            <div class="pos-foot-totals" id="totalSection" style="display:none;">
                 <div class="total-row grand">
-                    <span>Grand Total</span>
+                    <span>Total</span>
                     <span id="grandTotalDisplay">Rp 0</span>
                 </div>
             </div>
 
-            {{-- Payment method --}}
-            <div class="pay-toggle mt-3">
-                <button class="pay-btn" id="btnCash" onclick="setPayment('CASH')">💵 Tunai</button>
-                <button class="pay-btn" id="btnQris" onclick="setPayment('QRIS')">📱 QRIS</button>
+            {{-- Payment toggle --}}
+            <div class="pos-foot-payment">
+                <div class="pay-toggle">
+                    <button class="pay-btn" id="btnCash" onclick="setPayment('CASH')">💵 Tunai</button>
+                    <button class="pay-btn" id="btnQris" onclick="setPayment('QRIS')">📱 QRIS</button>
+                </div>
             </div>
 
-            {{-- Cash input --}}
+            {{-- Numpad (cash) --}}
             @if($posCashChangeEnabled === '1')
-            <div id="cashSection" class="hidden">
-                <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-                    <label style="font-size:12px;color:#888;white-space:nowrap;">Uang Diterima</label>
-                    <input type="number" id="cashInput" placeholder="0" min="0" step="1000"
-                           oninput="calcChange()"
-                           style="flex:1;padding:7px 10px;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;text-align:right;outline:none;">
+            <div id="cashSection" class="pos-foot-numpad hidden">
+                <label style="font-size:10px;color:#888;font-weight:700;letter-spacing:.4px;display:block;margin-bottom:5px;">UANG DITERIMA</label>
+                <div class="numpad-display" id="numpadDisplay">Rp 0</div>
+                <input type="hidden" id="cashInput" value="">
+                <div class="numpad-shortcuts" id="numpadShortcuts"></div>
+                <div class="numpad-grid">
+                    <button class="np-btn" onclick="npPress('7')">7</button>
+                    <button class="np-btn" onclick="npPress('8')">8</button>
+                    <button class="np-btn" onclick="npPress('9')">9</button>
+                    <button class="np-btn" onclick="npPress('4')">4</button>
+                    <button class="np-btn" onclick="npPress('5')">5</button>
+                    <button class="np-btn" onclick="npPress('6')">6</button>
+                    <button class="np-btn" onclick="npPress('1')">1</button>
+                    <button class="np-btn" onclick="npPress('2')">2</button>
+                    <button class="np-btn" onclick="npPress('3')">3</button>
+                    <button class="np-btn np-0" onclick="npPress('0')">0</button>
+                    <button class="np-btn np-del" onclick="npDel()">⌫</button>
                 </div>
-                <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 2px;">
-                    <span style="font-size:12px;color:#888;">Kembalian</span>
-                    <span id="kembalian" style="font-size:14px;">Rp 0</span>
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0 2px;border-top:1px dashed #e5e7eb;margin-top:6px;">
+                    <span style="font-size:11px;color:#888;">Kembalian</span>
+                    <span id="kembalian" style="font-size:13px;font-weight:700;">Rp 0</span>
                 </div>
             </div>
             @endif
 
-            <button class="btn-proses" id="btnProses" onclick="openConfirmModal()" disabled>
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="18"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                Proses Pesanan
-            </button>
+            {{-- Process button --}}
+            <div class="pos-foot-action">
+                <button class="btn-proses" id="btnProses" onclick="openConfirmModal()" disabled>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                    Proses Pesanan
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -412,6 +453,57 @@ function calcChange() {
     kemEl.className = change >= 0 ? 'kembalian-ok' : 'kembalian-err';
 }
 
+// ── Numpad ────────────────────────────────────────────────
+let _npRaw = '';
+
+function npPress(digit) {
+    if (_npRaw.length >= 9) return;
+    _npRaw += digit;
+    npRefresh();
+}
+
+function npDel() {
+    _npRaw = _npRaw.slice(0, -1);
+    npRefresh();
+}
+
+function npSetValue(val) {
+    _npRaw = String(val);
+    npRefresh();
+}
+
+function npRefresh() {
+    const num = parseInt(_npRaw) || 0;
+    const display = document.getElementById('numpadDisplay');
+    const input   = document.getElementById('cashInput');
+    if (display) {
+        display.textContent = num > 0 ? 'Rp ' + num.toLocaleString('id-ID') : 'Rp 0';
+        display.classList.toggle('filled', num > 0);
+    }
+    if (input) input.value = num || '';
+    calcChange();
+}
+
+function buildShortcuts() {
+    if (!CASH_CHANGE_EN) return;
+    const wrap = document.getElementById('numpadShortcuts');
+    if (!wrap) return;
+    const base = grandTotal;
+    const candidates = [];
+    const denominations = [1000, 2000, 5000, 10000, 20000, 50000, 100000];
+    if (base > 0) candidates.push({ label: 'Pas', val: base });
+    for (const d of denominations) {
+        const rounded = Math.ceil(base / d) * d;
+        if (rounded >= base && !candidates.find(c => c.val === rounded)) {
+            candidates.push({ label: 'Rp ' + (rounded/1000) + 'rb', val: rounded });
+            if (candidates.length >= 5) break;
+        }
+    }
+    wrap.innerHTML = candidates.map(c =>
+        `<button class="numpad-shortcut" onclick="npSetValue(${c.val})">${c.label}</button>`
+    ).join('');
+}
+
 // ── Add to cart ───────────────────────────────────────────
 function addToCart(productId) {
     const p = ALL_PRODUCTS.find(x => x.id === productId);
@@ -445,16 +537,15 @@ function renderCart() {
     if (cart.length === 0) {
         empty.style.display = '';
         items.innerHTML = '';
-        totSec.classList.add('hidden');
+        totSec.style.display = 'none';
         btnP.disabled = true;
         grandTotal = 0;
-        document.getElementById('subtotalDisplay').textContent = 'Rp 0';
         document.getElementById('grandTotalDisplay').textContent = 'Rp 0';
         return;
     }
 
     empty.style.display = 'none';
-    totSec.classList.remove('hidden');
+    totSec.style.display = '';
     btnP.disabled = false;
 
     let subtotal = 0;
@@ -484,9 +575,9 @@ function renderCart() {
     }).join('');
 
     grandTotal = subtotal;
-    document.getElementById('subtotalDisplay').textContent = 'Rp ' + subtotal.toLocaleString('id-ID');
     document.getElementById('grandTotalDisplay').textContent = 'Rp ' + grandTotal.toLocaleString('id-ID');
     calcChange();
+    buildShortcuts();
 }
 
 function removeCartItem(idx) { cart.splice(idx, 1); renderCart(); }
