@@ -8,81 +8,24 @@
             <a href="{{ route('cafe.history') }}" class="text-sm font-semibold text-primary-700 hover:text-primary-800">Riwayat</a>
         </div>
 
-        <!-- Payment / Status Summary -->
-        <div class="ui-card p-5 mb-4" id="statusSummary">
-            <div class="flex items-center justify-between gap-3">
-                <div>
-                    <p class="text-xs text-muted">Status Pesanan</p>
-                    <p class="text-lg font-extrabold text-gray-900" id="orderStatusText">{{ $order->order_status }}</p>
-                </div>
-                <div class="text-right">
-                    <p class="text-xs text-muted">Pembayaran</p>
-                    <p class="font-bold {{ $order->payment_status === 'PAID' ? 'text-green-700' : 'text-red-700' }}" id="paymentStatusText">
-                        {{ $order->payment_status === 'PAID' ? '✓ Paid' : 'Unpaid' }}
-                    </p>
-                </div>
-            </div>
-
-            @if($order->payment_status !== 'PAID')
-                @php $expiresAt = $order->created_at->addMinutes(10); @endphp
-                <div class="mt-4 ui-card-flat p-4 border border-amber-200 bg-amber-50" id="unpaidWarning">
-                    <div class="flex items-start justify-between gap-3">
-                        <div>
-                            <p class="font-semibold text-amber-800">Menunggu pembayaran</p>
-                            <p class="text-xs text-amber-700">Pesanan akan expired jika belum dibayar.</p>
-                        </div>
-                        <div class="text-right">
-                            <p class="text-xs text-amber-700">Sisa waktu</p>
-                            <p class="text-lg font-extrabold text-amber-900" id="countdown">--:--</p>
-                        </div>
-                    </div>
-
-                    @if($order->created_at->addMinutes(10)->isFuture())
-                    <a href="{{ route('cafe.pay', $order->order_code) }}" class="mt-3 inline-flex items-center justify-center w-full tap-44 px-5 py-3 bg-primary-600 text-white font-semibold ui-btn hover:bg-primary-700 transition-colors">
-                        💳 Bayar Sekarang
-                    </a>
-                    @endif
-                </div>
-            @endif
-        </div>
-
-        <!-- Progress -->
-        <div class="ui-card p-5 mb-4">
-            <h2 class="font-semibold tracking-tight mb-4">Progress</h2>
-            @php
-                $steps = [
-                    'DITERIMA' => ['label' => 'Diterima', 'desc' => 'Pesanan masuk'],
-                    'DIPROSES' => ['label' => 'Diproses', 'desc' => 'Sedang dibuat'],
-                    'READY' => ['label' => 'Ready', 'desc' => 'Siap diambil/diantar'],
-                    'SELESAI' => ['label' => 'Selesai', 'desc' => 'Pesanan selesai'],
-                ];
-                $orderKeys = array_keys($steps);
-                $currentIndex = array_search($order->order_status, $orderKeys);
-            @endphp
-
-            <div class="space-y-3" id="progressList">
-                @foreach($steps as $key => $meta)
-                    @php
-                        $idx = array_search($key, $orderKeys);
-                        $done = $currentIndex !== false && $idx <= $currentIndex;
-                        $active = $currentIndex !== false && $idx === $currentIndex;
-                    @endphp
-                    <div class="flex items-start gap-3">
-                        <div class="mt-0.5 w-7 h-7 rounded-full flex items-center justify-center border {{ $done ? 'bg-primary-600 border-primary-600 text-white' : 'bg-white border-line text-gray-400' }}" data-step="{{ $key }}">
-                            @if($done)
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                            @else
-                                <span class="text-xs font-bold">{{ $idx+1 }}</span>
-                            @endif
-                        </div>
-                        <div class="flex-1">
-                            <p class="font-semibold {{ $active ? 'text-gray-900' : ($done ? 'text-gray-800' : 'text-gray-600') }}" data-step-label="{{ $key }}">{{ $meta['label'] }}</p>
-                            <p class="text-xs text-muted">{{ $meta['desc'] }}</p>
-                        </div>
-                    </div>
-                @endforeach
-            </div>
-        </div>
+        {{-- ━━ VUE COMPONENT MOUNT POINT ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+             OrderTracker.vue + useOrderStore (Pinia) menangani:
+             • Real-time status & payment display
+             • Progress steps (Diterima → Diproses → Ready → Selesai)
+             • Countdown timer unpaid
+             • Intelligent Polling (ETag + Exponential Backoff)
+             • Notifikasi (sound, vibrate, SweetAlert) saat status READY
+             • Animasi slide-up review section saat SELESAI
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ --}}
+        <div
+            data-vue-component="OrderTracker"
+            data-order-code="{{ $order->order_code }}"
+            data-initial-order-status="{{ $order->order_status }}"
+            data-initial-pay-status="{{ $order->payment_status }}"
+            data-expires-timestamp="{{ $order->payment_status !== 'PAID' ? $order->created_at->addMinutes(10)->timestamp * 1000 : '' }}"
+            data-pay-url="{{ route('cafe.pay', $order->order_code) }}"
+            data-review-url="{{ route('cafe.order.feedback', $order->order_code) }}"
+        ></div>
 
         <!-- Items -->
         <div class="ui-card overflow-hidden mb-4">
@@ -127,6 +70,7 @@
         </div>
         @endif
 
+        {{-- Review section sekarang dirender oleh OrderTracker.vue (v-if + Transition) --}}
         <!-- Product Reviews -->
         <div class="ui-card overflow-hidden mb-6" id="reviewSection" style="{{ $order->order_status !== 'SELESAI' ? 'display:none;' : '' }}">
             <div class="p-5 border-b ui-divider">

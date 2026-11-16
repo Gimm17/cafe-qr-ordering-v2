@@ -9,6 +9,7 @@
     @include('partials.brand-head')
 
     {{ $head ?? '' }}
+    @vite(['resources/js/app.js'])
 </head>
 <body class="bg-bone text-ink min-h-screen">
 

@@ -26,3 +26,10 @@ cpanel.txt
 CafeQR-Redesign-FULL-Phase1-2/
 CafeQR-Redesign-FULL-Phase1-2.zip
 cafe-qr-ordering-source-code.zip
+
+.env.*
+!.env.example
+*.sqlite*
+database/database.sqlite
+testsprite_tests/
+claude --resume *.txt
