@@ -33,3 +33,11 @@ cafe-qr-ordering-source-code.zip
 database/database.sqlite
 testsprite_tests/
 claude --resume *.txt
+
+# Security: ignore secrets, credentials, dumps & backups
+*CPANEL*.txt
+*cpanel*.txt
+*secret*.txt
+pwsupersecretcpanel.txt
+github-access-token*.txt
+*.sql
